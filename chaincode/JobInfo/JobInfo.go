@@ -1,6 +1,6 @@
 // ============================================================================================================================
-// 本智能合约用于用户信息管理
-// 功能包括：个人信息的增、删、改、查，信用积分的变更和查询，账户余额的变更和查询，兼职信息的添加
+// 本智能合约用于兼职信息管理
+// 功能包括：兼职信息的增、删、改、查，统计数据的更新，订单信息的添加
 // ============================================================================================================================
 
 package main
@@ -17,36 +17,34 @@ type SimpleChaincode struct {
 }
 
 // ============================================================================================================================
-// UserInfo struct
+// JobInfo struct
 // ============================================================================================================================
-type UserInfoStruct struct {
-	UserStaticInfo UserStaticInfoStruct
-	CreditScore    CreditScoreStruct
-	Balance        string
-	Jobs           []string
+type JobInfoStruct struct {
+	JobID          string
+	UserID         string
+	UserName       string
+	JobDetail      JobStaticInfoStruct
+	Txs            []string
+	TotalApplied   string
+	TotalWaitCheck string
+	TotalHired     string
+	TotalSettled   string
 }
 
 // ============================================================================================================================
 // UserStaticInfo struct
 // ============================================================================================================================
-type UserStaticInfoStruct struct {
-	UserID     string
-	Name       string
-	Gender     string
-	School     string
-	StuID      string
-	Tele       string
-	AgencyName string
-	Role       string
+type JobStaticInfoStruct struct {
+	JobTime string
+	Place   string
+	Salary  string
+	Day     string
+	Demand  string
 }
 
-// ============================================================================================================================
-// CreditScore struct
-// ============================================================================================================================
-type CreditScoreStruct struct {
-	CurrentCreditScore string
-	TotalCreditScore   string
-	Ratetimes          string
+func (t *SimpleChaincode) GetChaincodeToCall() string {
+	chainCodeToCall := "59d5075e7146d8df37bdcb0c289c293c66ee2a56c0f8d833410ff7cd8d3dd6c65ff0c6966c1914109ed7e04423bc73967b7c693fbeb383bb1a057c75b37e2674"
+	return chainCodeToCall
 }
 
 // ============================================================================================================================
@@ -65,157 +63,170 @@ func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface, function stri
 	// Handle different functions
 	if function == "init" {
 		return t.Init(stub, "init", args)
-	} else if function == "delete" { //deletes an user from its state
-		return t.Delete(stub, args)
-	} else if function == "add" { //add a new user
+	} else if function == "add" { //add a new job
 		return t.Add(stub, args)
-	} else if function == "edit" { //change the infor of the user
+	} else if function == "delete" { //deletes an job from its state
+		return t.Delete(stub, args)
+	} else if function == "edit" { //change the infor of the job
 		return t.Edit(stub, args)
-	} else if function == "creditScoreEdit" { // change the creditScore of the user
-		return t.CreditScoreEdit(stub, args)
 	} else if function == "addTX" { //add a new TX
 		return t.AddTX(stub, args)
+	} else if function == "addTotalApplied" { //add 1 when a student applied the job
+		return t.AddTotalApplied(stub, args)
+	} else if function == "addTotalWaitCheck" { //add 1 when auto check not passed
+		return t.AddTotalWaitCheck(stub, args)
+	} else if function == "addTotalHired" { //add 1 when auto check passed or agency check passed
+		return t.AddTotalHired(stub, args)
+	} else if function == "addTotalSettled" { //add 1 when auto settle passed or agency settle passed
+		return t.AddTotalSettled(stub, args)
 	}
 
 	return nil, errors.New("Received unknown function invocation")
 }
 
 // ============================================================================================================================
-// Delete function is used for deleting a user
-// 1 input
-// "UserID"
-// ============================================================================================================================
-func (t *SimpleChaincode) Delete(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
-	var err error
-	if len(args) != 1 {
-		return nil, errors.New("Incorrect number of arguments. Expecting 1. ")
-	}
-	UserID := args[0]
-	UserInfo, err := stub.GetState(UserID)
-
-	//test if the user has been existed
-	if err != nil {
-		return nil, errors.New("The user never been exited")
-	}
-
-	if UserInfo == nil {
-		return nil, errors.New("The user`s information is empty!")
-	}
-
-	err = stub.DelState(UserID) //remove the key from chaincode state
-	if err != nil {
-		return nil, errors.New("Failed to delete ", UserID)
-	}
-
-	return nil, nil
-}
-
-// ============================================================================================================================
-// Add function is used for adding a new user
+// Add function is used for adding a new job
 // 2 input
-// "UserID","UserInfo"
+// "JobID","JobInfo"
 // ============================================================================================================================
 func (t *SimpleChaincode) Add(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 	var err error
 	if len(args) != 2 {
 		return nil, errors.New("Incorrect number of arguments. Expecting 2. ")
 	}
-	UserID := args[0]
-	UserInfo := args[1]
-	UserTest, _ := stub.GetState(UserID)
+	JobID := args[0]
+	JobInfo := args[1]
+	JobTest, _ := stub.GetState(JobID)
 
-	//test if the user has been existed
-	if UserTest != nil {
+	//test if the job has been existed
+	if JobTest != nil {
 		return nil, errors.New("the user is existed")
 	}
 
-	// add the user
-	err = stub.PutState(UserID, []byte(UserInfo))
+	// add the job
+	err = stub.PutState(JobID, []byte(JobInfo))
 	if err != nil {
-		return nil, errors.New("Failed to add the user")
+		return nil, errors.New("Failed to add the job")
+	}
+
+	var JobInfoJsonType JobInfoStruct //json type to accept the JobInfo from state
+	err = json.Unmarshal([]byte(JobInfo), &JobInfoJsonType)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+
+	//invoke UserInfo chaincode to add this job`s ID attach to the agency who publish this job
+	chainCodeToCall := t.GetChaincodeToCall()
+	f := "AddTX"
+	invokeArgs := util.ToChaincodeArgs(f, JobInfoJsonType.UserID, JobInfoJsonType.JobID)
+	response, err := stub.InvokeChaincode(chainCodeToCall, invokeArgs)
+	if err != nil {
+		errStr := fmt.Sprintf("Failed to invoke chaincode. Got error: %s", err.Error())
+		fmt.Printf(errStr)
+		return nil, errors.New(errStr)
+	}
+	fmt.Printf("Invoke chaincode successful. Got response %s", string(response))
+
+	return nil, nil
+}
+
+// ============================================================================================================================
+// Delete function is used for deleting a job
+// 1 input
+// "JobID"
+// ============================================================================================================================
+func (t *SimpleChaincode) Delete(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+	var err error
+	if len(args) != 1 {
+		return nil, errors.New("Incorrect number of arguments. Expecting 1. ")
+	}
+	JobID := args[0]
+	JobInfo, err := stub.GetState(JobID)
+
+	//test if the job has been existed
+	if err != nil {
+		return nil, errors.New("The job never been exited")
+	}
+
+	if JobInfo == nil {
+		return nil, errors.New("The job`s information is empty!")
+	}
+
+	err = stub.DelState(JobID) //remove the key from chaincode state
+	if err != nil {
+		return nil, errors.New("Failed to delete ", JobID)
 	}
 
 	return nil, nil
 }
 
 // ============================================================================================================================
-// Edit function is used for changing the user's info
+// Edit function is used for changing the job's info
 // 2 input
-// "UserID","NewUserInfo"
+// "JobID","NewJobInfo"
 // ============================================================================================================================
 func (t *SimpleChaincode) Edit(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 	var err error
 	if len(args) != 2 {
 		return nil, errors.New("Incorrect number of arguments. Expecting 2. ")
 	}
-	UserID := args[0]
-	NewUserInfo := args[1]
-	OldUserInfo, err := stub.GetState(UserID)
+	JobID := args[0]
+	NewJobInfo := args[1]
+	OldJobInfo, err := stub.GetState(JobID)
 
-	//test if the user has been existed
+	//test if the job has been existed
 	if err != nil {
-		return nil, errors.New("The user never been exited")
+		return nil, errors.New("The job never been exited")
 	}
 
-	if OldUserInfo == nil {
-		return nil, errors.New("The user`s information is empty!")
+	if OldJobInfo == nil {
+		return nil, errors.New("The job`s information is empty!")
 	}
 
-	// edit the user
-	err = stub.PutState(UserID, []byte(NewUserInfo))
+	// edit the job
+	err = stub.PutState(JobID, []byte(NewJobInfo))
 	if err != nil {
-		return nil, errors.New("Failed to edit the user")
+		return nil, errors.New("Failed to edit the job")
 	}
 
 	return nil, nil
 }
 
 // ============================================================================================================================
-// CreditScoreEdit function is used for change the account's credit score
+// AddTotalApplied function is used to add 1 when a student applied the job
 // 1 input
-// "UserID","NewScoreFromOthersNow"
+// "JobID"
 // ============================================================================================================================
-func (t *SimpleChaincode) CreditScoreEdit(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+func (t *SimpleChaincode) AddTotalApplied(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 	var err error
-	if len(args) != 2 {
-		return nil, errors.New("Incorrect number of arguments. Expecting 2. ")
+	if len(args) != 1 {
+		return nil, errors.New("Incorrect number of arguments. Expecting 1. ")
 	}
-	UserID := args[0]
-	NewScoreFromOthersNow := args[1]
-	UserInfo, err := stub.GetState(UserID)
+	JobID := args[0]
+	JobInfo, err := stub.GetState(JobID)
 
-	//test if the user has been existed
+	//test if the job has been existed
 	if err != nil {
-		return nil, errors.New("The user never been exited")
+		return nil, errors.New("The job never been exited")
 	}
-	if UserInfo == nil {
-		return nil, errors.New("The user`s information is empty!")
+	if JobInfo == nil {
+		return nil, errors.New("The job`s information is empty!")
 	}
 
-	var UserInfoJsonType UserInfoStruct //json type to accept the UserInfo from state
+	var JobInfoJsonType JobInfoStruct //json type to accept the JobInfo from state
 
-	err = json.Unmarshal(UserInfo, &UserInfoJsonType)
+	err = json.Unmarshal(JobInfo, &JobInfoJsonType)
 	if err != nil {
 		fmt.Println("error:", err)
 	}
 
-	var TotalScore int
-	var TotalTimes int
-	var CurrentScore int
-
-	TotalScore, _ = strconv.Atoi(string(UserInfoJsonType.CreditScore.TotalCreditScore))
-	TotalTimes, _ = strconv.Atoi(string(UserInfoJsonType.CreditScore.Ratetimes))
-
-	TotalScore += NewScoreFromOthersNow
-	TotalTimes++
-	CurrentScore = TotalScore / TotalTimes
-
-	UserInfoJsonType.CreditScore.TotalCreditScore = strconv.Itoa(TotalScore)
-	UserInfoJsonType.CreditScore.Ratetimes = strconv.Itoa(TotalTimes)
-	UserInfoJsonType.CreditScore.CurrentCreditScore = strconv.Itoa(CurrentScore)
+	var TotalAppliedValue int
+	TotalAppliedValue, _ = strconv.Atoi(string(JobInfoJsonType.TotalApplied))
+	TotalAppliedValue++
+	JobInfoJsonType.TotalApplied = strconv.Itoa(TotalAppliedValue)
 
 	// put the new score into state
-	a, err := json.Marshal(UserInfoJsonType)
+	a, err := json.Marshal(JobInfoJsonType)
 	if err != nil {
 		return nil, err
 	}
@@ -224,38 +235,164 @@ func (t *SimpleChaincode) CreditScoreEdit(stub shim.ChaincodeStubInterface, args
 }
 
 // ============================================================================================================================
-// AddTX function is used to add TXID for the user
+// AddTotalWaitCheck function is used to add 1 when auto check not passed
 // 1 input
-// "UserID","TXID"
+// "JobID"
+// ============================================================================================================================
+func (t *SimpleChaincode) AddTotalWaitCheck(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+	var err error
+	if len(args) != 1 {
+		return nil, errors.New("Incorrect number of arguments. Expecting 1. ")
+	}
+	JobID := args[0]
+	JobInfo, err := stub.GetState(JobID)
+
+	//test if the job has been existed
+	if err != nil {
+		return nil, errors.New("The job never been exited")
+	}
+	if JobInfo == nil {
+		return nil, errors.New("The job`s information is empty!")
+	}
+
+	var JobInfoJsonType JobInfoStruct //json type to accept the JobInfo from state
+
+	err = json.Unmarshal(JobInfo, &JobInfoJsonType)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+
+	var TotalWaitCheckValue int
+	TotalWaitCheckValue, _ = strconv.Atoi(string(JobInfoJsonType.TotalWaitCheck))
+	TotalWaitCheckValue++
+	JobInfoJsonType.TotalWaitCheck = strconv.Itoa(TotalWaitCheckValue)
+
+	// put the new score into state
+	a, err := json.Marshal(JobInfoJsonType)
+	if err != nil {
+		return nil, err
+	}
+
+	return nil, nil
+}
+
+// ============================================================================================================================
+// AddTotalHired function is used to add 1 when auto check passed or agency check passed
+// 1 input
+// "JobID"
+// ============================================================================================================================
+func (t *SimpleChaincode) AddTotalHired(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+	var err error
+	if len(args) != 1 {
+		return nil, errors.New("Incorrect number of arguments. Expecting 1. ")
+	}
+	JobID := args[0]
+	JobInfo, err := stub.GetState(JobID)
+
+	//test if the job has been existed
+	if err != nil {
+		return nil, errors.New("The job never been exited")
+	}
+	if JobInfo == nil {
+		return nil, errors.New("The job`s information is empty!")
+	}
+
+	var JobInfoJsonType JobInfoStruct //json type to accept the JobInfo from state
+
+	err = json.Unmarshal(JobInfo, &JobInfoJsonType)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+
+	var TotalHiredValue int
+	TotalHiredValue, _ = strconv.Atoi(string(JobInfoJsonType.TotalHired))
+	TotalHiredValue++
+	JobInfoJsonType.TotalHired = strconv.Itoa(TotalHiredValue)
+
+	// put the new score into state
+	a, err := json.Marshal(JobInfoJsonType)
+	if err != nil {
+		return nil, err
+	}
+
+	return nil, nil
+}
+
+// ============================================================================================================================
+// AddTotalSettled function is used to add 1 when auto settle passed or agency settle passed
+// 1 input
+// "JobID"
+// ============================================================================================================================
+func (t *SimpleChaincode) AddTotalSettled(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+	var err error
+	if len(args) != 1 {
+		return nil, errors.New("Incorrect number of arguments. Expecting 1. ")
+	}
+	JobID := args[0]
+	JobInfo, err := stub.GetState(JobID)
+
+	//test if the job has been existed
+	if err != nil {
+		return nil, errors.New("The job never been exited")
+	}
+	if JobInfo == nil {
+		return nil, errors.New("The job`s information is empty!")
+	}
+
+	var JobInfoJsonType JobInfoStruct //json type to accept the JobInfo from state
+
+	err = json.Unmarshal(JobInfo, &JobInfoJsonType)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+
+	var TotalSettledValue int
+	TotalSettledValue, _ = strconv.Atoi(string(JobInfoJsonType.TotalSettled))
+	TotalSettledValue++
+	JobInfoJsonType.TotalSettled = strconv.Itoa(TotalSettledValue)
+
+	// put the new score into state
+	a, err := json.Marshal(JobInfoJsonType)
+	if err != nil {
+		return nil, err
+	}
+
+	return nil, nil
+}
+
+// ============================================================================================================================
+// AddTX function is used to add TXID for the job
+// 1 input
+// "JobID","TXID"
 // ============================================================================================================================
 func (t *SimpleChaincode) AddTX(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 	var err error
 	if len(args) != 2 {
 		return nil, errors.New("Incorrect number of arguments. Expecting 2. ")
 	}
-	UserID := args[0]
+	JobID := args[0]
 	TXID := args[1]
-	UserInfo, err := stub.GetState(UserID)
+	JobInfo, err := stub.GetState(JobID)
 
-	//test if the user has been existed
+	//test if the job has been existed
 	if err != nil {
-		return nil, errors.New("The user never been exited")
+		return nil, errors.New("The job never been exited")
 	}
-	if UserInfo == nil {
-		return nil, errors.New("The user`s information is empty!")
+	if JobInfo == nil {
+		return nil, errors.New("The job`s information is empty!")
 	}
 
-	var UserInfoJsonType UserInfoStruct //json type to accept the UserInfo from state
+	var JobInfoJsonType JobInfoStruct //json type to accept the JobInfo from state
 
-	err = json.Unmarshal(UserInfo, &UserInfoJsonType)
+	err = json.Unmarshal(JobInfo, &JobInfoJsonType)
 	if err != nil {
 		fmt.Println("error:", err)
 	}
 
-	UserInfoJsonType.Jobs = append(UserInfoJsonType.Jobs, "TXID")
+	JobInfoJsonType.Txs = append(JobInfoJsonType.Txs, "TXID")
 
-	// put the new score into state
-	a, err := json.Marshal(UserInfoJsonType)
+	// put the new info into state
+	a, err := json.Marshal(JobInfoJsonType)
 	if err != nil {
 		return nil, err
 	}
@@ -268,9 +405,7 @@ func (t *SimpleChaincode) AddTX(stub shim.ChaincodeStubInterface, args []string)
 // ============================================================================================================================
 func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
 
-	if function == "queryCurrentCreditScore" {
-		return t.QueryCurrentCreditScore(stub, args)
-	} else if function == "queryUserInfo" { // reply if the account is existed
+	if function == "queryJobInfo" { // reply if the job is existed
 		return t.QueryUserInfo(stub, args)
 	}
 
@@ -279,65 +414,29 @@ func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function strin
 }
 
 // ============================================================================================================================
-// QueryCurrentCreditScore function is used to query the user`s current credit score.
+// QueryJobInfo function is used to return the whole information of the job.
 // 1 input
-// "UserID"
+// "JobID"
 // ============================================================================================================================
-func (t *SimpleChaincode) QueryCurrentCreditScore(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
-	var err error
+func (t *SimpleChaincode) QueryJobInfo(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 	if len(args) != 1 {
 		return nil, errors.New("Incorrect number of arguments. Expecting 1 ")
 	}
-	UserID := args[0]
-	UserInfo, err := stub.GetState(UserID)
-
-	//test if the user has been existed
-	if err != nil {
-		return nil, errors.New("The user never been exited")
-	}
-	if UserInfo == nil {
-		return nil, errors.New("The user`s information is empty!")
-	}
-
-	var UserInfoJsonType UserInfoStruct //json type to accept the UserInfo from state
-
-	err = json.Unmarshal(UserInfo, &UserInfoJsonType)
-	if err != nil {
-		fmt.Println("error:", err)
-	}
-
-	// verify
-	if UserInfoJsonType.CreditScore.CurrentCreditScore == nil {
-		return nil, errors.New("Can not get the current credit socre")
-	} else {
-		return UserInfoJsonType.CreditScore.CurrentCreditScore, nil
-	}
-}
-
-// ============================================================================================================================
-// QueryUserInfo function is used to return the whole information of the user.
-// 1 input
-// "UserID"
-// ============================================================================================================================
-func (t *SimpleChaincode) QueryUserInfo(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
-	if len(args) != 1 {
-		return nil, errors.New("Incorrect number of arguments. Expecting 1 ")
-	}
-	UserID := args[0]
+	JobID := args[0]
 
 	// Get the state from the ledger
-	UserInfo, err := stub.GetState(UserID)
+	JobInfo, err := stub.GetState(JobID)
 	if err != nil {
-		jsonResp := "{\"Error\":\"Failed to get state for " + UserID + "\"}"
+		jsonResp := "{\"Error\":\"Failed to get state for " + JobID + "\"}"
 		return nil, errors.New(jsonResp)
 	}
 
-	if UserInfo == nil {
-		jsonResp := "{\"Error\":\"Nil content for " + UserID + "\"}"
+	if JobInfo == nil {
+		jsonResp := "{\"Error\":\"Nil content for " + JobID + "\"}"
 		return nil, errors.New(jsonResp)
 	}
 
-	return UserInfo, nil
+	return JobInfo, nil
 }
 
 func main() {

@@ -20,10 +20,10 @@ type SimpleChaincode struct {
 // UserInfo struct
 // ============================================================================================================================
 type UserInfoStruct struct {
-	UserStaticInfo UserStaticInfoStruct
-	CreditScore    CreditScoreStruct
-	Balance        string
-	Jobs           []string
+	UserInfo    UserStaticInfoStruct
+	CreditScore CreditScoreStruct
+	Balance     string
+	Jobs        []string
 }
 
 // ============================================================================================================================
@@ -65,10 +65,10 @@ func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface, function stri
 	// Handle different functions
 	if function == "init" {
 		return t.Init(stub, "init", args)
-	} else if function == "delete" { //deletes an user from its state
-		return t.Delete(stub, args)
 	} else if function == "add" { //add a new user
 		return t.Add(stub, args)
+	} else if function == "delete" { //deletes an user from its state
+		return t.Delete(stub, args)
 	} else if function == "edit" { //change the infor of the user
 		return t.Edit(stub, args)
 	} else if function == "creditScoreEdit" { // change the creditScore of the user
@@ -78,6 +78,34 @@ func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface, function stri
 	}
 
 	return nil, errors.New("Received unknown function invocation")
+}
+
+// ============================================================================================================================
+// Add function is used for adding a new user
+// 2 input
+// "UserID","UserInfo"
+// ============================================================================================================================
+func (t *SimpleChaincode) Add(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+	var err error
+	if len(args) != 2 {
+		return nil, errors.New("Incorrect number of arguments. Expecting 2. ")
+	}
+	UserID := args[0]
+	UserInfo := args[1]
+	UserTest, _ := stub.GetState(UserID)
+
+	//test if the user has been existed
+	if UserTest != nil {
+		return nil, errors.New("the user is existed")
+	}
+
+	// add the user
+	err = stub.PutState(UserID, []byte(UserInfo))
+	if err != nil {
+		return nil, errors.New("Failed to add the user")
+	}
+
+	return nil, nil
 }
 
 // ============================================================================================================================
@@ -105,34 +133,6 @@ func (t *SimpleChaincode) Delete(stub shim.ChaincodeStubInterface, args []string
 	err = stub.DelState(UserID) //remove the key from chaincode state
 	if err != nil {
 		return nil, errors.New("Failed to delete ", UserID)
-	}
-
-	return nil, nil
-}
-
-// ============================================================================================================================
-// Add function is used for adding a new user
-// 2 input
-// "UserID","UserInfo"
-// ============================================================================================================================
-func (t *SimpleChaincode) Add(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
-	var err error
-	if len(args) != 2 {
-		return nil, errors.New("Incorrect number of arguments. Expecting 2. ")
-	}
-	UserID := args[0]
-	UserInfo := args[1]
-	UserTest, _ := stub.GetState(UserID)
-
-	//test if the user has been existed
-	if UserTest != nil {
-		return nil, errors.New("the user is existed")
-	}
-
-	// add the user
-	err = stub.PutState(UserID, []byte(UserInfo))
-	if err != nil {
-		return nil, errors.New("Failed to add the user")
 	}
 
 	return nil, nil
@@ -172,7 +172,7 @@ func (t *SimpleChaincode) Edit(stub shim.ChaincodeStubInterface, args []string) 
 
 // ============================================================================================================================
 // CreditScoreEdit function is used for change the account's credit score
-// 1 input
+// 2 input
 // "UserID","NewScoreFromOthersNow"
 // ============================================================================================================================
 func (t *SimpleChaincode) CreditScoreEdit(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
@@ -225,7 +225,7 @@ func (t *SimpleChaincode) CreditScoreEdit(stub shim.ChaincodeStubInterface, args
 
 // ============================================================================================================================
 // AddTX function is used to add TXID for the user
-// 1 input
+// 2 input
 // "UserID","TXID"
 // ============================================================================================================================
 func (t *SimpleChaincode) AddTX(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
