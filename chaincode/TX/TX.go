@@ -29,6 +29,16 @@ type TXInfoStruct struct {
 	AgencyScore string
 }
 
+func (t *SimpleChaincode) GetJobChaincodeToCall() string {
+	chainCodeToCall := "59d5075e7146d8df37bdcb0c289c293c66ee2a56c0f8d833410ff7cd8d3dd6c65ff0c6966c1914109ed7e04423bc73967b7c693fbeb383bb1a057c75b37e2674"
+	return chainCodeToCall
+}
+
+func (t *SimpleChaincode) GetUserChaincodeToCall() string {
+	chainCodeToCall := "59d5075e7146d8df37bdcb0c289c293c66ee2a56c0f8d833410ff7cd8d3dd6c65ff0c6966c1914109ed7e04423bc73967b7c693fbeb383bb1a057c75b37e2674"
+	return chainCodeToCall
+}
+
 // ============================================================================================================================
 // Init function
 // ============================================================================================================================
@@ -45,157 +55,147 @@ func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface, function stri
 	// Handle different functions
 	if function == "init" {
 		return t.Init(stub, "init", args)
-	} else if function == "delete" { //deletes an user from its state
-		return t.Delete(stub, args)
-	} else if function == "add" { //add a new user
-		return t.Add(stub, args)
-	} else if function == "edit" { //change the infor of the user
-		return t.Edit(stub, args)
-	} else if function == "creditScoreEdit" { // change the creditScore of the user
-		return t.CreditScoreEdit(stub, args)
-	} else if function == "addTX" { //add a new TX
-		return t.AddTX(stub, args)
+	} else if function == "create" { //create a tx when a student applied a job and auto to check this application
+		return t.Create(stub, args)
+	} else if function == "artificialCheck" { //agency check this application when auto check not passed
+		return t.ArtificialCheck(stub, args)
+	} else if function == "evaluate" { //student and agancy evaluate each other
+		return t.Evaluate(stub, args)
 	}
 
 	return nil, errors.New("Received unknown function invocation")
 }
 
 // ============================================================================================================================
-// Delete function is used for deleting a user
+// Create function is used to create a tx when a student applied a job and auto to check this application
 // 1 input
-// "UserID"
+// "TxID","TxInfo"
 // ============================================================================================================================
-func (t *SimpleChaincode) Delete(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+func (t *SimpleChaincode) Create(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 	var err error
-	if len(args) != 1 {
-		return nil, errors.New("Incorrect number of arguments. Expecting 1. ")
+	if len(args) != 4 {
+		return nil, errors.New("Incorrect number of arguments. Expecting 4. ")
 	}
-	UserID := args[0]
-	UserInfo, err := stub.GetState(UserID)
+	TxID := args[0]
+	TxInfo := args[1]
+	TxTest, _ := stub.GetState(TxID)
 
-	//test if the user has been existed
-	if err != nil {
-		return nil, errors.New("The user never been exited")
-	}
-
-	if UserInfo == nil {
-		return nil, errors.New("The user`s information is empty!")
+	//test if the TX has been existed
+	if TxTest != nil {
+		return nil, errors.New("the Tx is existed")
 	}
 
-	err = stub.DelState(UserID) //remove the key from chaincode state
-	if err != nil {
-		return nil, errors.New("Failed to delete ", UserID)
-	}
-
-	return nil, nil
-}
-
-// ============================================================================================================================
-// Add function is used for adding a new user
-// 2 input
-// "UserID","UserInfo"
-// ============================================================================================================================
-func (t *SimpleChaincode) Add(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
-	var err error
-	if len(args) != 2 {
-		return nil, errors.New("Incorrect number of arguments. Expecting 2. ")
-	}
-	UserID := args[0]
-	UserInfo := args[1]
-	UserTest, _ := stub.GetState(UserID)
-
-	//test if the user has been existed
-	if UserTest != nil {
-		return nil, errors.New("the user is existed")
-	}
-
-	// add the user
-	err = stub.PutState(UserID, []byte(UserInfo))
+	// add the Tx
+	err = stub.PutState(TxID, []byte(TxInfo))
 	if err != nil {
 		return nil, errors.New("Failed to add the user")
 	}
 
+	var TXInfoJsonType TXInfoStruct //json type to accept the TxInfo from state
+
+	err = json.Unmarshal([]byte(TxInfo), &TXInfoJsonType)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+
+	//attach the TxID to related job
+	//invoke JobInfo chaincode to add this TxID attach to the Job
+	jobChainCodeToCall := t.GetJobChaincodeToCall()
+	funcOfJobChaincode := "AddTX"
+	invokeArgsOfJobChaincode := util.ToChaincodeArgs(funcOfJobChaincode, string(TXInfoJsonType.JobID), string(TXInfoJsonType.TxID))
+	response1, err := stub.InvokeChaincode(jobChainCodeToCall, invokeArgsOfJobChaincode)
+	if err != nil {
+		errStr := fmt.Sprintf("Failed to invoke chaincode. Got error: %s", err.Error())
+		fmt.Printf(errStr)
+		return nil, errors.New(errStr)
+	}
+	fmt.Printf("Invoke chaincode successful. Got response %s", string(response))
+
+	//attach the TxID to related student
+	//invoke UserInfo chaincode to add this TxID attach to the student
+	userChainCodeToCall := t.GetUserChaincodeToCall()
+	funcOfUserChaincode := "AddTX"
+	invokeArgsOfUserChaincode := util.ToChaincodeArgs(funcOfUserChaincode, string(TXInfoJsonType.UserID), string(TXInfoJsonType.TxID))
+	response2, err := stub.InvokeChaincode(userChainCodeToCall, invokeArgsOfUserChaincode)
+	if err != nil {
+		errStr := fmt.Sprintf("Failed to invoke chaincode. Got error: %s", err.Error())
+		fmt.Printf(errStr)
+		return nil, errors.New(errStr)
+	}
+	fmt.Printf("Invoke chaincode successful. Got response %s", string(response))
+
+	//auto check
+	// Query User`s credit score
+	f := "query"
+	queryArgs := util.ToChaincodeArgs(f, string(TXInfoJsonType.UserID))
+	response, err := stub.QueryChaincode(userChainCodeToCall, queryArgs)
+	if err != nil {
+		errStr := fmt.Sprintf("Failed to query chaincode. Got error: %s", err.Error())
+		fmt.Printf(errStr)
+		return nil, errors.New(errStr)
+	}
+	Score, err := strconv.Atoi(string(response))
+	if err != nil {
+		errStr := fmt.Sprintf("Error retrieving state from ledger for queried chaincode: %s", err.Error())
+		fmt.Printf(errStr)
+		return nil, errors.New(errStr)
+	}
+	if Score > 8 {
+		TXInfoJsonType.Status = []byte("已通过审核待评价")
+	} else {
+		TXInfoJsonType.Status = []byte("未通过自动审核")
+	}
+
+	// put the new TxInfo into state
+	a, err := json.Marshal(TXInfoJsonType)
+	if err != nil {
+		return nil, err
+	}
+
 	return nil, nil
 }
 
 // ============================================================================================================================
-// Edit function is used for changing the user's info
+// ArtificialCheck function is used to check this application when auto check not passed by agency
 // 2 input
-// "UserID","NewUserInfo"
+// "TxID","Result(1:通过；2:未通过)"
 // ============================================================================================================================
-func (t *SimpleChaincode) Edit(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+func (t *SimpleChaincode) ArtificialCheck(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 	var err error
 	if len(args) != 2 {
 		return nil, errors.New("Incorrect number of arguments. Expecting 2. ")
 	}
-	UserID := args[0]
-	NewUserInfo := args[1]
-	OldUserInfo, err := stub.GetState(UserID)
+	TxID := args[0]
+	Result := strconv.Atoi(args[1])
+	TxInfo, err := stub.GetState(TxID)
 
-	//test if the user has been existed
+	//test if the TX has been existed
 	if err != nil {
-		return nil, errors.New("The user never been exited")
+		return nil, errors.New("The TX never been exited")
+	}
+	if TxInfo == nil {
+		return nil, errors.New("The TX`s information is empty!")
 	}
 
-	if OldUserInfo == nil {
-		return nil, errors.New("The user`s information is empty!")
-	}
+	var TXInfoJsonType TXInfoStruct //json type to accept the TxInfo from state
 
-	// edit the user
-	err = stub.PutState(UserID, []byte(NewUserInfo))
-	if err != nil {
-		return nil, errors.New("Failed to edit the user")
-	}
-
-	return nil, nil
-}
-
-// ============================================================================================================================
-// CreditScoreEdit function is used for change the account's credit score
-// 1 input
-// "UserID","NewScoreFromOthersNow"
-// ============================================================================================================================
-func (t *SimpleChaincode) CreditScoreEdit(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
-	var err error
-	if len(args) != 2 {
-		return nil, errors.New("Incorrect number of arguments. Expecting 2. ")
-	}
-	UserID := args[0]
-	NewScoreFromOthersNow := args[1]
-	UserInfo, err := stub.GetState(UserID)
-
-	//test if the user has been existed
-	if err != nil {
-		return nil, errors.New("The user never been exited")
-	}
-	if UserInfo == nil {
-		return nil, errors.New("The user`s information is empty!")
-	}
-
-	var UserInfoJsonType UserInfoStruct //json type to accept the UserInfo from state
-
-	err = json.Unmarshal(UserInfo, &UserInfoJsonType)
+	err = json.Unmarshal(TxInfo, &TXInfoJsonType)
 	if err != nil {
 		fmt.Println("error:", err)
 	}
 
-	var TotalScore int
-	var TotalTimes int
-	var CurrentScore int
+	if strings.EqualFold(string(TXInfoJsonType.Status), "未通过自动审核") {
+		if Result == 1 {
+			TXInfoJsonType.Status = []byte("已通过审核待评价")
+		} else {
+			TXInfoJsonType.Status = []byte("未通过审核，已回绝")
+		}
+	} else {
+		return nil, errors.New("Incorrect stage of status. Expecting 未通过自动审核. ")
+	}
 
-	TotalScore, _ = strconv.Atoi(string(UserInfoJsonType.CreditScore.TotalCreditScore))
-	TotalTimes, _ = strconv.Atoi(string(UserInfoJsonType.CreditScore.Ratetimes))
-
-	TotalScore += NewScoreFromOthersNow
-	TotalTimes++
-	CurrentScore = TotalScore / TotalTimes
-
-	UserInfoJsonType.CreditScore.TotalCreditScore = strconv.Itoa(TotalScore)
-	UserInfoJsonType.CreditScore.Ratetimes = strconv.Itoa(TotalTimes)
-	UserInfoJsonType.CreditScore.CurrentCreditScore = strconv.Itoa(CurrentScore)
-
-	// put the new score into state
-	a, err := json.Marshal(UserInfoJsonType)
+	// put the new TxInfo into state
+	a, err := json.Marshal(TXInfoJsonType)
 	if err != nil {
 		return nil, err
 	}
@@ -204,43 +204,85 @@ func (t *SimpleChaincode) CreditScoreEdit(stub shim.ChaincodeStubInterface, args
 }
 
 // ============================================================================================================================
-// AddTX function is used to add TXID for the user
-// 1 input
-// "UserID","TXID"
+// Evaluate function is used to evaluate each other by student and agancy
+// 3 input
+// "TxID","UserID","Score"
 // ============================================================================================================================
-func (t *SimpleChaincode) AddTX(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+func (t *SimpleChaincode) Evaluate(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 	var err error
-	if len(args) != 2 {
-		return nil, errors.New("Incorrect number of arguments. Expecting 2. ")
+	if len(args) != 3 {
+		return nil, errors.New("Incorrect number of arguments. Expecting 3. ")
 	}
-	UserID := args[0]
-	TXID := args[1]
-	UserInfo, err := stub.GetState(UserID)
+	TxID := args[0]
+	UserID := args[1]
+	Score := args[2]
 
-	//test if the user has been existed
+	TxInfo, err := stub.GetState(TxID)
+
+	//test if the TX has been existed
 	if err != nil {
-		return nil, errors.New("The user never been exited")
+		return nil, errors.New("The TX never been exited")
 	}
-	if UserInfo == nil {
-		return nil, errors.New("The user`s information is empty!")
+	if TxInfo == nil {
+		return nil, errors.New("The TX`s information is empty!")
 	}
 
-	var UserInfoJsonType UserInfoStruct //json type to accept the UserInfo from state
+	var TXInfoJsonType TXInfoStruct //json type to accept the TxInfo from state
 
-	err = json.Unmarshal(UserInfo, &UserInfoJsonType)
+	err = json.Unmarshal(TxInfo, &TXInfoJsonType)
 	if err != nil {
 		fmt.Println("error:", err)
 	}
 
-	UserInfoJsonType.Jobs = append(UserInfoJsonType.Jobs, "TXID")
+	if strings.EqualFold(string(TXInfoJsonType.UserID), UserID) {
+		TXInfoJsonType.AgencyScore = []byte(Score)
+	} else {
+		TXInfoJsonType.StuScore = []byte(Score)
+	}
 
-	// put the new score into state
-	a, err := json.Marshal(UserInfoJsonType)
+	if TXInfoJsonType.StuScore != nil && TXInfoJsonType.AgencyScore != nil {
+		if TXInfoJsonType.StuScore > 8 {
+			// Query agency`s ID
+			f := "queryAgencyIDandSalary"
+			queryArgs := util.ToChaincodeArgs(f, string(TXInfoJsonType.JobID))
+			AgencyID, Salary, err := stub.QueryChaincode(t.GetJobChaincodeToCall(), queryArgs)
+			if err != nil {
+				errStr := fmt.Sprintf("Failed to query chaincode. Got error: %s", err.Error())
+				fmt.Printf(errStr)
+				return nil, errors.New(errStr)
+			}
+
+			f2 := "autoSettle"
+			invokeArgs2 := util.ToChaincodeArgs(f2, string(TXInfoJsonType.UserID), string(AgencyID), string(Salary))
+			response2, err := stub.InvokeChaincode(t.GetUserChaincodeToCall(), invokeArgs2)
+			if err != nil {
+				errStr := fmt.Sprintf("Failed to invoke chaincode. Got error: %s", err.Error())
+				fmt.Printf(errStr)
+				return nil, errors.New(errStr)
+			}
+
+			fmt.Printf("Invoke chaincode successful. Got response %s", string(response))
+
+			TXInfoJsonType.Status = []byte("已结算")
+		} else {
+			TXInfoJsonType.Status = []byte("已评价未通过自动结算")
+		}
+	} else {
+		// put the new TxInfo into state
+		a, err := json.Marshal(TXInfoJsonType)
+		if err != nil {
+			return nil, err
+		}
+		return nil, nil
+	}
+
+	// put the new TxInfo into state
+	a, err := json.Marshal(TXInfoJsonType)
 	if err != nil {
 		return nil, err
 	}
-
 	return nil, nil
+
 }
 
 // ============================================================================================================================
@@ -248,10 +290,8 @@ func (t *SimpleChaincode) AddTX(stub shim.ChaincodeStubInterface, args []string)
 // ============================================================================================================================
 func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
 
-	if function == "queryCurrentCreditScore" {
-		return t.QueryCurrentCreditScore(stub, args)
-	} else if function == "queryUserInfo" { // reply if the account is existed
-		return t.QueryUserInfo(stub, args)
+	if function == "queryTxInfo" {
+		return t.QueryTxInfo(stub, args)
 	}
 
 	return nil, errors.New("failed to query")
@@ -259,65 +299,29 @@ func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function strin
 }
 
 // ============================================================================================================================
-// QueryCurrentCreditScore function is used to query the user`s current credit score.
+// QueryTxInfo function is used to query the Tx`s information.
 // 1 input
-// "UserID"
+// "TxID"
 // ============================================================================================================================
-func (t *SimpleChaincode) QueryCurrentCreditScore(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
-	var err error
+func (t *SimpleChaincode) QueryTxInfo(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 	if len(args) != 1 {
 		return nil, errors.New("Incorrect number of arguments. Expecting 1 ")
 	}
-	UserID := args[0]
-	UserInfo, err := stub.GetState(UserID)
-
-	//test if the user has been existed
-	if err != nil {
-		return nil, errors.New("The user never been exited")
-	}
-	if UserInfo == nil {
-		return nil, errors.New("The user`s information is empty!")
-	}
-
-	var UserInfoJsonType UserInfoStruct //json type to accept the UserInfo from state
-
-	err = json.Unmarshal(UserInfo, &UserInfoJsonType)
-	if err != nil {
-		fmt.Println("error:", err)
-	}
-
-	// verify
-	if UserInfoJsonType.CreditScore.CurrentCreditScore == nil {
-		return nil, errors.New("Can not get the current credit socre")
-	} else {
-		return UserInfoJsonType.CreditScore.CurrentCreditScore, nil
-	}
-}
-
-// ============================================================================================================================
-// QueryUserInfo function is used to return the whole information of the user.
-// 1 input
-// "UserID"
-// ============================================================================================================================
-func (t *SimpleChaincode) QueryUserInfo(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
-	if len(args) != 1 {
-		return nil, errors.New("Incorrect number of arguments. Expecting 1 ")
-	}
-	UserID := args[0]
+	TxID := args[0]
 
 	// Get the state from the ledger
-	UserInfo, err := stub.GetState(UserID)
+	TxInfo, err := stub.GetState(TxID)
 	if err != nil {
-		jsonResp := "{\"Error\":\"Failed to get state for " + UserID + "\"}"
+		jsonResp := "{\"Error\":\"Failed to get state for " + TxID + "\"}"
 		return nil, errors.New(jsonResp)
 	}
 
-	if UserInfo == nil {
-		jsonResp := "{\"Error\":\"Nil content for " + UserID + "\"}"
+	if TxInfo == nil {
+		jsonResp := "{\"Error\":\"Nil content for " + TxID + "\"}"
 		return nil, errors.New(jsonResp)
 	}
 
-	return UserInfo, nil
+	return TxInfo, nil
 }
 
 func main() {

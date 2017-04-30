@@ -75,6 +75,8 @@ func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface, function stri
 		return t.CreditScoreEdit(stub, args)
 	} else if function == "addTX" { //add a new TX
 		return t.AddTX(stub, args)
+	} else if function == "autoSettle" {
+		return t.AutoSettle(stub, args)
 	}
 
 	return nil, errors.New("Received unknown function invocation")
@@ -256,6 +258,76 @@ func (t *SimpleChaincode) AddTX(stub shim.ChaincodeStubInterface, args []string)
 
 	// put the new score into state
 	a, err := json.Marshal(UserInfoJsonType)
+	if err != nil {
+		return nil, err
+	}
+
+	return nil, nil
+}
+
+// ============================================================================================================================
+// AutoSettle function is used to change the balance of user
+// 2 input
+// "StuID","AgencyID","Salary"
+// ============================================================================================================================
+func (t *SimpleChaincode) AutoSettle(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+	var err error
+	if len(args) != 3 {
+		return nil, errors.New("Incorrect number of arguments. Expecting 3. ")
+	}
+	StuID := args[0]
+	AgencyID := args[1]
+	Salary, _ := strconv.Atoi(args[2])
+	StuInfo, err := stub.GetState(StuID)
+
+	//test if the student has been existed
+	if err != nil {
+		return nil, errors.New("The student never been exited")
+	}
+	if StuInfo == nil {
+		return nil, errors.New("The student`s information is empty!")
+	}
+
+	var UserInfoJsonTypeOfStu UserInfoStruct //json type to accept the UserInfo from state
+
+	err = json.Unmarshal(StuInfo, &UserInfoJsonTypeOfStu)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+
+	OldBalanceOfStu, _ := strconv.Atoi(string(UserInfoJsonTypeOfStu.Balance))
+	NewBalanceOfStu := OldBalanceOfStu + Salary
+	UserInfoJsonTypeOfStu.Balance = []byte(strconv.Itoa(NewBalanceOfStu))
+
+	// put the new score into state
+	a, err := json.Marshal(UserInfoJsonTypeOfStu)
+	if err != nil {
+		return nil, err
+	}
+
+	AgencyInfo, err := stub.GetState(AgencyID)
+
+	//test if the agency has been existed
+	if err != nil {
+		return nil, errors.New("The agency never been exited")
+	}
+	if AgencyInfo == nil {
+		return nil, errors.New("The agency`s information is empty!")
+	}
+
+	var UserInfoJsonTypeOfAgency UserInfoStruct //json type to accept the UserInfo from state
+
+	err = json.Unmarshal(AgencyInfo, &UserInfoJsonTypeOfAgency)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+
+	OldBalanceOfAgency, _ := strconv.Atoi(string(UserInfoJsonTypeOfAgency.Balance))
+	NewBalanceOfAgency := OldBalanceOfAgency - Salary
+	UserInfoJsonTypeOfAgency.Balance = []byte(strconv.Itoa(NewBalanceOfAgency))
+
+	// put the new score into state
+	b, err := json.Marshal(UserInfoJsonTypeOfAgency)
 	if err != nil {
 		return nil, err
 	}
