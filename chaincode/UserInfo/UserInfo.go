@@ -351,7 +351,7 @@ func (t *SimpleChaincode) AutoSettle(stub shim.ChaincodeStubInterface, args []st
 		return nil, err
 	}
 	// put the new score into state
-	err = stub.PutState(AgencyID, NewUserInfo)
+	err = stub.PutState(AgencyID, NewAgencyInfo)
 	if err != nil {
 		return nil, errors.New("Failed to putstate")
 	}
