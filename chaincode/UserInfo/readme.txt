@@ -2,30 +2,30 @@ UserInfo智能合约：每一个用户都在这一个合约中创建，修改，
 
 数据结构：
 	{
-		"Balance": 0, 
-		"CreditScore": {
-		  "CurrentCreditScore": 0, 
-		  "RateTimes": 0, 
-		  "TotalCreditScore": 0
-		}, 
-		"Jobs": [
-		  "123", 
-		  "123"
-		], 
-		"UserInfo": {
-		  "AgencyName": "", 
-		  "BCID": "123", 
-		  "Gender": 0, 
-		  "Password": "123", 
-		  "RealName": "", 
-		  "Role": 0, 
-		  "School": "", 
-		  "Status": 1, 
-		  "StuID": "", 
-		  "Tele": "", 
-		  "UserID": "", 
-		  "Username": "abc"
-		}
+	    "Balance": "100",
+	    "CreditScore": {
+	        "CurrentCreditScore": "6",
+	        "RateTimes": "1",
+	        "TotalCreditScore": "6"
+	    },
+	    "Jobs": [
+	        "123",
+	        "123"
+	    ],
+	    "UserInfo": {
+	        "AgencyName": "",
+	        "BCID": "123",
+	        "Gender": "0",
+	        "Password": "123",
+	        "RealName": "",
+	        "Role": "0",
+	        "School": "",
+	        "Status": "1",
+	        "StuID": "",
+	        "Tele": "",
+	        "UserID": "1",
+	        "Username": "abc"
+	    }
 	}
 
 world status：
@@ -56,22 +56,22 @@ deploy：
 	}
 
 invoke：
-	Add添加一个新用户
+	add添加一个新用户
 	参数有2个："UserId","UserInfo"
 
-	Delete删除一个老用户
+	delete删除一个老用户
 	参数有1个："UserId"
 
-	Edit修改用户信息
+	edit修改用户信息
 	参数有2个："UserID","NewUserInfo"
 
-	CreditScoreEdit修改用户信用积分
+	creditScoreEdit修改用户信用积分
 	参数有2个："UserID","NewScoreFromOthersNow"
 
-	AddTX添加和该用户相关的兼职ID（对于中介）或TXID（对于学生）
+	addTX添加和该用户相关的兼职ID（对于中介）或TXID（对于学生）
 	参数有2个："UserID","TXID"
 
-	AutoSettle结算即修改用户账户余额
+	autoSettle结算即修改用户账户余额
 	参数有3个："StuID","AgencyID","Salary"
 
 	invoke的POST请求
@@ -93,10 +93,10 @@ invoke：
 	}
 
 query：
-	QueryCurrentCreditScore查询当前用户的信用积分
+	queryCurrentCreditScore查询当前用户的信用积分
 	参数有1个："UserID"
 
-	QueryUserInfo查询当前用户的信息
+	queryUserInfo查询当前用户的信息
 	参数有1个："UserID"
 
 	query的POST请求
@@ -116,3 +116,12 @@ query：
 	  },
 	  "id": 3
 	}
+
+模拟数据
+
+{\"Balance\": \"100\",\"CreditScore\": {\"CurrentCreditScore\": \"6\",\"RateTimes\": \"1\",\"TotalCreditScore\": \"6\"},\"Jobs\": [\"123\",\"123\"],\"UserInfo\": {\"AgencyName\": \"\",\"BCID\": \"123\",\"Gender\": \"0\",\"Password\": \"123\",\"RealName\": \"\",\"Role\": \"0\",\"School\": \"\",\"Status\": \"1\",\"StuID\": \"\",\"Tele\": \"\",\"UserID\": \"1\",\"Username\": \"abc\"}}
+
+{\"Balance\": \"100\",\"CreditScore\": {\"CurrentCreditScore\": \"6\",\"RateTimes\": \"1\",\"TotalCreditScore\": \"6\"},\"Jobs\": [\"123\",\"123\"],\"UserInfo\": {\"AgencyName\": \"\",\"BCID\": \"123\",\"Gender\": \"0\",\"Password\": \"123\",\"RealName\": \"\",\"Role\": \"0\",\"School\": \"\",\"Status\": \"1\",\"StuID\": \"\",\"Tele\": \"\",\"UserID\": \"2\",\"Username\": \"abc\"}}
+
+{\"Balance\": \"100\",\"CreditScore\": {\"CurrentCreditScore\": \"6\",\"RateTimes\": \"1\",\"TotalCreditScore\": \"6\"},\"Jobs\": [\"123\",\"123\"],\"UserInfo\": {\"AgencyName\": \"\",\"BCID\": \"123\",\"Gender\": \"0\",\"Password\": \"123\",\"RealName\": \"\",\"Role\": \"0\",\"School\": \"\",\"Status\": \"1\",\"StuID\": \"\",\"Tele\": \"\",\"UserID\": \"3\",\"Username\": \"abc\"}}
+
