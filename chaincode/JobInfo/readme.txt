@@ -97,7 +97,10 @@ invoke：
 	}
 
 query：
-	queryAgencyIDandSalary查询当前兼职对应的中介ID和薪水
+	queryAgencyID查询当前兼职对应的中介ID
+	参数有1个："JobId"
+
+	querySalary查询当前兼职对应的薪水
 	参数有1个："JobId"
 
 	queryJobInfo查询当前兼职的信息
@@ -128,3 +131,4 @@ query：
 
 {\"JobDetail\": {\"Demand\": \"\",\"Day\": \"\",\"Place\": \"\",\"Salary\": \"50\",\"JobTime\": \"\"},\"JobID\": \"j1\",\"UserID\": \"1\",\"UserName\": \"\",\"TotalApplied\": \"123\",\"TotalHired\": \"123\",\"TotalSettled\": \"123\",\"TotalWaitCheck\": \"123\",\"Txs\": [\"123\",\"123\"]}
 
+{\"JobDetail\": {\"Demand\": \"\",\"Day\": \"\",\"Place\": \"\",\"Salary\": \"50\",\"JobTime\": \"\"},\"JobID\": \"j2\",\"UserID\": \"2\",\"UserName\": \"\",\"TotalApplied\": \"123\",\"TotalHired\": \"123\",\"TotalSettled\": \"123\",\"TotalWaitCheck\": \"123\",\"Txs\": [\"123\",\"123\"]}

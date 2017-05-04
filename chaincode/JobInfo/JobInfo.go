@@ -59,7 +59,9 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
 
 	// Handle different functions
-	if function == "add" { //add a new job
+	if function == "init" {
+		return t.Init(stub, "init", args)
+	} else if function == "add" { //add a new job
 		return t.Add(stub, args)
 	} else if function == "delete" { //deletes an job from its state
 		return t.Delete(stub, args)
