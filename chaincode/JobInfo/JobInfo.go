@@ -406,7 +406,7 @@ func (t *SimpleChaincode) AddTX(stub shim.ChaincodeStubInterface, args []string)
 		fmt.Println("error:", err)
 	}
 
-	JobInfoJsonType.Txs = append(JobInfoJsonType.Txs, "TXID")
+	JobInfoJsonType.Txs = append(JobInfoJsonType.Txs, TXID)
 
 	// put the new info into state
 	a, err := json.Marshal(JobInfoJsonType)
