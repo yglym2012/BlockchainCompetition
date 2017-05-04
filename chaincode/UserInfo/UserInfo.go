@@ -31,13 +31,17 @@ type UserInfoStruct struct {
 // ============================================================================================================================
 type UserStaticInfoStruct struct {
 	UserID     string
-	Name       string
 	Gender     string
 	School     string
 	StuID      string
 	Tele       string
 	AgencyName string
 	Role       string
+	UserName   string
+	BCID       string
+	Password   string
+	RealName   string
+	Status     string
 }
 
 // ============================================================================================================================
@@ -267,7 +271,7 @@ func (t *SimpleChaincode) AddTX(stub shim.ChaincodeStubInterface, args []string)
 
 // ============================================================================================================================
 // AutoSettle function is used to change the balance of user
-// 2 input
+// 3 input
 // "StuID","AgencyID","Salary"
 // ============================================================================================================================
 func (t *SimpleChaincode) AutoSettle(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
