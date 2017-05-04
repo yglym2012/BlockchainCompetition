@@ -225,6 +225,7 @@ func (t *SimpleChaincode) CreditScoreEdit(stub shim.ChaincodeStubInterface, args
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println(string(a))
 
 	return nil, nil
 }
@@ -258,13 +259,14 @@ func (t *SimpleChaincode) AddTX(stub shim.ChaincodeStubInterface, args []string)
 		fmt.Println("error:", err)
 	}
 
-	UserInfoJsonType.Jobs = append(UserInfoJsonType.Jobs, "TXID")
+	UserInfoJsonType.Jobs = append(UserInfoJsonType.Jobs, TXID)
 
 	// put the new score into state
 	a, err := json.Marshal(UserInfoJsonType)
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println(string(a))
 
 	return nil, nil
 }
@@ -308,6 +310,7 @@ func (t *SimpleChaincode) AutoSettle(stub shim.ChaincodeStubInterface, args []st
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println(string(a))
 
 	AgencyInfo, err := stub.GetState(AgencyID)
 
@@ -335,6 +338,7 @@ func (t *SimpleChaincode) AutoSettle(stub shim.ChaincodeStubInterface, args []st
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println(string(b))
 
 	return nil, nil
 }
