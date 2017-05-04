@@ -138,7 +138,7 @@ func (t *SimpleChaincode) Delete(stub shim.ChaincodeStubInterface, args []string
 
 	err = stub.DelState(UserID) //remove the key from chaincode state
 	if err != nil {
-		return nil, errors.New("Failed to delete ", UserID)
+		return nil, errors.New("Failed to delete the user. ")
 	}
 
 	return nil, nil
@@ -187,7 +187,7 @@ func (t *SimpleChaincode) CreditScoreEdit(stub shim.ChaincodeStubInterface, args
 		return nil, errors.New("Incorrect number of arguments. Expecting 2. ")
 	}
 	UserID := args[0]
-	NewScoreFromOthersNow := args[1]
+	NewScoreFromOthersNow, _ := strconv.Atoi(args[1])
 	UserInfo, err := stub.GetState(UserID)
 
 	//test if the user has been existed
@@ -301,7 +301,7 @@ func (t *SimpleChaincode) AutoSettle(stub shim.ChaincodeStubInterface, args []st
 
 	OldBalanceOfStu, _ := strconv.Atoi(string(UserInfoJsonTypeOfStu.Balance))
 	NewBalanceOfStu := OldBalanceOfStu + Salary
-	UserInfoJsonTypeOfStu.Balance = []byte(strconv.Itoa(NewBalanceOfStu))
+	UserInfoJsonTypeOfStu.Balance = strconv.Itoa(NewBalanceOfStu)
 
 	// put the new score into state
 	a, err := json.Marshal(UserInfoJsonTypeOfStu)
@@ -328,7 +328,7 @@ func (t *SimpleChaincode) AutoSettle(stub shim.ChaincodeStubInterface, args []st
 
 	OldBalanceOfAgency, _ := strconv.Atoi(string(UserInfoJsonTypeOfAgency.Balance))
 	NewBalanceOfAgency := OldBalanceOfAgency - Salary
-	UserInfoJsonTypeOfAgency.Balance = []byte(strconv.Itoa(NewBalanceOfAgency))
+	UserInfoJsonTypeOfAgency.Balance = strconv.Itoa(NewBalanceOfAgency)
 
 	// put the new score into state
 	b, err := json.Marshal(UserInfoJsonTypeOfAgency)
@@ -382,12 +382,7 @@ func (t *SimpleChaincode) QueryCurrentCreditScore(stub shim.ChaincodeStubInterfa
 		fmt.Println("error:", err)
 	}
 
-	// verify
-	if UserInfoJsonType.CreditScore.CurrentCreditScore == nil {
-		return nil, errors.New("Can not get the current credit socre")
-	} else {
-		return UserInfoJsonType.CreditScore.CurrentCreditScore, nil
-	}
+	return []byte(UserInfoJsonType.CreditScore.CurrentCreditScore), nil
 }
 
 // ============================================================================================================================
