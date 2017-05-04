@@ -417,7 +417,7 @@ func (t *SimpleChaincode) QueryUserInfo(stub shim.ChaincodeStubInterface, args [
 	return UserInfo, nil
 }
 
-func (t *SimpleChaincode) Test(stub shim.ChaincodeStubInterface, args []string) (string, error) {
+func (t *SimpleChaincode) Test(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 	var err error
 	if len(args) != 2 {
 		return nil, errors.New("Incorrect number of arguments. Expecting 2. ")
@@ -463,7 +463,7 @@ func (t *SimpleChaincode) Test(stub shim.ChaincodeStubInterface, args []string) 
 	}
 	fmt.Println(string(a))
 
-	return UserInfoJsonType.CreditScore.TotalCreditScore, nil
+	return []byte(UserInfoJsonType.CreditScore.TotalCreditScore), nil
 }
 
 func main() {
