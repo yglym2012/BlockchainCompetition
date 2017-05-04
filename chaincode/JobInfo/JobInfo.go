@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/hyperledger/fabric/core/chaincode/shim"
+	"github.com/hyperledger/fabric/core/util"
 	"strconv"
 )
 
@@ -423,10 +424,10 @@ func (t *SimpleChaincode) AddTX(stub shim.ChaincodeStubInterface, args []string)
 // ============================================================================================================================
 // Query function is the entry point for Queries
 // ============================================================================================================================
-func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
+func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, []byte, error) {
 
 	if function == "queryJobInfo" {
-		return t.QueryUserInfo(stub, args)
+		return t.QueryJobInfo(stub, args)
 	} else if function == "queryAgencyIDandSalary" {
 		return t.QueryAgencyIDandSalary(stub, args)
 	}
@@ -440,9 +441,9 @@ func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function strin
 // 1 input
 // "JobID"
 // ============================================================================================================================
-func (t *SimpleChaincode) QueryJobInfo(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+func (t *SimpleChaincode) QueryJobInfo(stub shim.ChaincodeStubInterface, args []string) ([]byte, []byte, error) {
 	if len(args) != 1 {
-		return nil, errors.New("Incorrect number of arguments. Expecting 1 ")
+		return nil, nil, errors.New("Incorrect number of arguments. Expecting 1 ")
 	}
 	JobID := args[0]
 
@@ -450,15 +451,15 @@ func (t *SimpleChaincode) QueryJobInfo(stub shim.ChaincodeStubInterface, args []
 	JobInfo, err := stub.GetState(JobID)
 	if err != nil {
 		jsonResp := "{\"Error\":\"Failed to get state for " + JobID + "\"}"
-		return nil, errors.New(jsonResp)
+		return nil, nil, errors.New(jsonResp)
 	}
 
 	if JobInfo == nil {
 		jsonResp := "{\"Error\":\"Nil content for " + JobID + "\"}"
-		return nil, errors.New(jsonResp)
+		return nil, nil, errors.New(jsonResp)
 	}
 
-	return JobInfo, nil
+	return JobInfo, nil, nil
 }
 
 // ============================================================================================================================
@@ -469,17 +470,17 @@ func (t *SimpleChaincode) QueryJobInfo(stub shim.ChaincodeStubInterface, args []
 func (t *SimpleChaincode) QueryAgencyIDandSalary(stub shim.ChaincodeStubInterface, args []string) ([]byte, []byte, error) {
 	var err error
 	if len(args) != 1 {
-		return nil, errors.New("Incorrect number of arguments. Expecting 1 ")
+		return nil, nil, errors.New("Incorrect number of arguments. Expecting 1 ")
 	}
 	JobID := args[0]
 	JobInfo, err := stub.GetState(JobID)
 
 	//test if the job has been existed
 	if err != nil {
-		return nil, errors.New("The job never been exited")
+		return nil, nil, errors.New("The job never been exited")
 	}
 	if JobInfo == nil {
-		return nil, errors.New("The job`s information is empty!")
+		return nil, nil, errors.New("The job`s information is empty!")
 	}
 
 	var JobInfoJsonType JobInfoStruct //json type to accept the JobInfo from state
@@ -489,7 +490,7 @@ func (t *SimpleChaincode) QueryAgencyIDandSalary(stub shim.ChaincodeStubInterfac
 		fmt.Println("error:", err)
 	}
 
-	return JobInfoJsonType.UserID, JobInfoJsonType.JobDetail.Salary, nil
+	return []byte(JobInfoJsonType.UserID), []byte(JobInfoJsonType.JobDetail.Salary), nil
 }
 
 func main() {
