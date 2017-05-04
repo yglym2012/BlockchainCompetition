@@ -10,7 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/hyperledger/fabric/core/chaincode/shim"
-	"github.com/hyperledger/fabric/core/util"
+	//"github.com/hyperledger/fabric/core/util"
 	"strconv"
 )
 
@@ -43,7 +43,7 @@ type JobStaticInfoStruct struct {
 	Demand  string
 }
 
-const UserInfoChaincodeID string = "160d9b88e83856238d689e329768e86e319047ad61aebf9e15a2c0d8636f4ad30621d60352f46012dfaf150f25d160cdb2f3cf148c611997777e1189cd218c7b"
+//const UserInfoChaincodeID string = "160d9b88e83856238d689e329768e86e319047ad61aebf9e15a2c0d8636f4ad30621d60352f46012dfaf150f25d160cdb2f3cf148c611997777e1189cd218c7b"
 
 // ============================================================================================================================
 // Init function
@@ -114,7 +114,7 @@ func (t *SimpleChaincode) Add(stub shim.ChaincodeStubInterface, args []string) (
 	}
 
 	//invoke UserInfo chaincode to add this job`s ID attach to the agency who publish this job
-	f := "AddTX"
+	/*f := "AddTX"
 	invokeArgs := util.ToChaincodeArgs(f, string(JobInfoJsonType.UserID), string(JobInfoJsonType.JobID))
 	response, err := stub.InvokeChaincode(UserInfoChaincodeID, invokeArgs)
 	if err != nil {
@@ -123,7 +123,7 @@ func (t *SimpleChaincode) Add(stub shim.ChaincodeStubInterface, args []string) (
 		return nil, errors.New(errStr)
 	}
 	fmt.Printf("Invoke chaincode successful. Got response %s", string(response))
-
+	*/
 	return nil, nil
 }
 
