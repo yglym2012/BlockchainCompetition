@@ -10,7 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/hyperledger/fabric/core/chaincode/shim"
-	//"github.com/hyperledger/fabric/core/util"
+	"github.com/hyperledger/fabric/core/util"
 	"strconv"
 )
 
@@ -43,7 +43,7 @@ type JobStaticInfoStruct struct {
 	Demand  string
 }
 
-//const UserInfoChaincodeID string = "160d9b88e83856238d689e329768e86e319047ad61aebf9e15a2c0d8636f4ad30621d60352f46012dfaf150f25d160cdb2f3cf148c611997777e1189cd218c7b"
+const UserInfoChaincodeID string = "160d9b88e83856238d689e329768e86e319047ad61aebf9e15a2c0d8636f4ad30621d60352f46012dfaf150f25d160cdb2f3cf148c611997777e1189cd218c7b"
 
 // ============================================================================================================================
 // Init function
@@ -59,9 +59,7 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
 
 	// Handle different functions
-	if function == "init" {
-		return t.Init(stub, "init", args)
-	} else if function == "add" { //add a new job
+	if function == "add" { //add a new job
 		return t.Add(stub, args)
 	} else if function == "delete" { //deletes an job from its state
 		return t.Delete(stub, args)
@@ -114,8 +112,8 @@ func (t *SimpleChaincode) Add(stub shim.ChaincodeStubInterface, args []string) (
 	}
 
 	//invoke UserInfo chaincode to add this job`s ID attach to the agency who publish this job
-	/*f := "AddTX"
-	invokeArgs := util.ToChaincodeArgs(f, string(JobInfoJsonType.UserID), string(JobInfoJsonType.JobID))
+	f := "AddTX"
+	invokeArgs := util.ToChaincodeArgs(f, JobInfoJsonType.UserID, JobInfoJsonType.JobID)
 	response, err := stub.InvokeChaincode(UserInfoChaincodeID, invokeArgs)
 	if err != nil {
 		errStr := fmt.Sprintf("Failed to invoke chaincode. Got error: %s", err.Error())
@@ -123,7 +121,7 @@ func (t *SimpleChaincode) Add(stub shim.ChaincodeStubInterface, args []string) (
 		return nil, errors.New(errStr)
 	}
 	fmt.Printf("Invoke chaincode successful. Got response %s", string(response))
-	*/
+
 	return nil, nil
 }
 
