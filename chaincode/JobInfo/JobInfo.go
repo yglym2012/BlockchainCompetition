@@ -64,8 +64,8 @@ func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface, function stri
 	// Handle different functions
 	if function == "init" {
 		return t.Init(stub, "init", args)
-	} else if function == "add" { //add a new job
-		return t.Add(stub, args)
+	} else if function == "addJob" { //add a new job
+		return t.AddJob(stub, args)
 	} else if function == "delete" { //deletes an job from its state
 		return t.Delete(stub, args)
 	} else if function == "edit" { //change the infor of the job
@@ -86,11 +86,11 @@ func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface, function stri
 }
 
 // ============================================================================================================================
-// Add function is used for adding a new job
+// AddJob function is used for adding a new job
 // 2 input
 // "JobID","JobInfo"
 // ============================================================================================================================
-func (t *SimpleChaincode) Add(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+func (t *SimpleChaincode) AddJob(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 	var err error
 	if len(args) != 2 {
 		return nil, errors.New("Incorrect number of arguments. Expecting 2. ")
