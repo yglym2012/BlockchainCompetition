@@ -220,12 +220,16 @@ func (t *SimpleChaincode) CreditScoreEdit(stub shim.ChaincodeStubInterface, args
 	UserInfoJsonType.CreditScore.Ratetimes = strconv.Itoa(TotalTimes)
 	UserInfoJsonType.CreditScore.CurrentCreditScore = strconv.Itoa(CurrentScore)
 
-	// put the new score into state
-	a, err := json.Marshal(UserInfoJsonType)
+	// translate struct into json
+	NewUserInfo, err := json.Marshal(UserInfoJsonType)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(string(a))
+	// put the new score into state
+	err = stub.PutState(UserID, NewUserInfo)
+	if err != nil {
+		return nil, errors.New("Failed to putstate")
+	}
 
 	return nil, nil
 }
@@ -261,12 +265,16 @@ func (t *SimpleChaincode) AddTX(stub shim.ChaincodeStubInterface, args []string)
 
 	UserInfoJsonType.Jobs = append(UserInfoJsonType.Jobs, TXID)
 
-	// put the new score into state
-	a, err := json.Marshal(UserInfoJsonType)
+	// translate struct into json
+	NewUserInfo, err := json.Marshal(UserInfoJsonType)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(string(a))
+	// put the new score into state
+	err = stub.PutState(UserID, NewUserInfo)
+	if err != nil {
+		return nil, errors.New("Failed to putstate")
+	}
 
 	return nil, nil
 }
@@ -305,12 +313,16 @@ func (t *SimpleChaincode) AutoSettle(stub shim.ChaincodeStubInterface, args []st
 	NewBalanceOfStu := OldBalanceOfStu + Salary
 	UserInfoJsonTypeOfStu.Balance = strconv.Itoa(NewBalanceOfStu)
 
-	// put the new score into state
-	a, err := json.Marshal(UserInfoJsonTypeOfStu)
+	// translate struct into json
+	NewStuInfo, err := json.Marshal(UserInfoJsonTypeOfStu)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(string(a))
+	// put the new score into state
+	err = stub.PutState(StuID, NewStuInfo)
+	if err != nil {
+		return nil, errors.New("Failed to putstate")
+	}
 
 	AgencyInfo, err := stub.GetState(AgencyID)
 
@@ -333,12 +345,16 @@ func (t *SimpleChaincode) AutoSettle(stub shim.ChaincodeStubInterface, args []st
 	NewBalanceOfAgency := OldBalanceOfAgency - Salary
 	UserInfoJsonTypeOfAgency.Balance = strconv.Itoa(NewBalanceOfAgency)
 
-	// put the new score into state
-	b, err := json.Marshal(UserInfoJsonTypeOfAgency)
+	// translate struct into json
+	NewAgencyInfo, err := json.Marshal(UserInfoJsonTypeOfAgency)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(string(b))
+	// put the new score into state
+	err = stub.PutState(AgencyID, NewUserInfo)
+	if err != nil {
+		return nil, errors.New("Failed to putstate")
+	}
 
 	return nil, nil
 }
@@ -352,8 +368,6 @@ func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function strin
 		return t.QueryCurrentCreditScore(stub, args)
 	} else if function == "queryUserInfo" { // reply if the account is existed
 		return t.QueryUserInfo(stub, args)
-	} else if function == "test" { // reply if the account is existed
-		return t.Test(stub, args)
 	}
 
 	return nil, errors.New("No this function name, failed to query")
@@ -415,55 +429,6 @@ func (t *SimpleChaincode) QueryUserInfo(stub shim.ChaincodeStubInterface, args [
 	}
 
 	return UserInfo, nil
-}
-
-func (t *SimpleChaincode) Test(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
-	var err error
-	if len(args) != 2 {
-		return nil, errors.New("Incorrect number of arguments. Expecting 2. ")
-	}
-	UserID := args[0]
-	NewScoreFromOthersNow, _ := strconv.Atoi(args[1])
-	UserInfo, err := stub.GetState(UserID)
-
-	//test if the user has been existed
-	if err != nil {
-		return nil, errors.New("The user never been exited")
-	}
-	if UserInfo == nil {
-		return nil, errors.New("The user`s information is empty!")
-	}
-
-	var UserInfoJsonType UserInfoStruct //json type to accept the UserInfo from state
-
-	err = json.Unmarshal(UserInfo, &UserInfoJsonType)
-	if err != nil {
-		fmt.Println("error:", err)
-	}
-
-	var TotalScore int
-	var TotalTimes int
-	var CurrentScore int
-
-	TotalScore, _ = strconv.Atoi(string(UserInfoJsonType.CreditScore.TotalCreditScore))
-	TotalTimes, _ = strconv.Atoi(string(UserInfoJsonType.CreditScore.Ratetimes))
-
-	TotalScore += NewScoreFromOthersNow
-	TotalTimes++
-	CurrentScore = TotalScore / TotalTimes
-
-	UserInfoJsonType.CreditScore.TotalCreditScore = strconv.Itoa(TotalScore)
-	UserInfoJsonType.CreditScore.Ratetimes = strconv.Itoa(TotalTimes)
-	UserInfoJsonType.CreditScore.CurrentCreditScore = strconv.Itoa(CurrentScore)
-
-	// put the new score into state
-	a, err := json.Marshal(UserInfoJsonType)
-	if err != nil {
-		return nil, err
-	}
-	fmt.Println(string(a))
-
-	return []byte(UserInfoJsonType.CreditScore.TotalCreditScore), nil
 }
 
 func main() {
