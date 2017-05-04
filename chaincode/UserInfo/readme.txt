@@ -30,29 +30,30 @@ UserInfo智能合约：每一个用户都在这一个合约中创建，修改，
 
 world status：
 	key		  value
-	UserID	  用户的ID即身份证号
-	UserInfo  用户信息（即上面数据结构中的信息）
+	UserID	  UserInfo
 	注释：key这一列下面，带引号就是key的实际值，不带引号的是变量，变量是什么，key的值是什么
 
 deploy：
 	init的参数有0个
 
 	init的POST请求
-	Post Addr:Port/chaincode
+	Post https://a6377d73838047d39f8527f035520915-vp0.us.blockchain.ibm.com:5002/chaincode
 	{
 	  "jsonrpc": "2.0",
 	  "method": "deploy",
 	  "params": {
 	    "type": 1,
-	    "chaincodeID":{
-	        "path":"ChaincodePath"
+	    "chaincodeID": {
+	      "path": "https://github.com/yglym2012/BlockchainCompetition/chaincode/UserInfo"
 	    },
 	    "ctorMsg": {
-	        "args":["init"]
+	      "function": "deploy",
+	      "args": [
+	      ]
 	    },
-	    "secureContext": VPName
+	    "secureContext": "user_type1_0"
 	  },
-	  "id": 1
+	  "id": 0
 	}
 
 invoke：
@@ -75,21 +76,24 @@ invoke：
 	参数有3个："StuID","AgencyID","Salary"
 
 	invoke的POST请求
-	Post Addr:Port/chaincode
+	Post https://a6377d73838047d39f8527f035520915-vp0.us.blockchain.ibm.com:5002/chaincode
 	{
 	  "jsonrpc": "2.0",
 	  "method": "invoke",
 	  "params": {
 	    "type": 1,
-	    "chaincodeID":{
-	        "name":"ChaincodeID"
+	    "chaincodeID": {
+	      "name": "160d9b88e83856238d689e329768e86e319047ad61aebf9e15a2c0d8636f4ad30621d60352f46012dfaf150f25d160cdb2f3cf148c611997777e1189cd218c7b"
 	    },
 	    "ctorMsg": {
-	        "args":["add","UserID","UserInfo"]
+	      "function": "autoSettle",
+	      "args": [
+	        "1","2","50"
+	      ]
 	    },
-	    "secureContext": VPName
+	    "secureContext": "user_type1_0"
 	  },
-	  "id": 1
+	  "id": 0
 	}
 
 query：
@@ -100,21 +104,24 @@ query：
 	参数有1个："UserID"
 
 	query的POST请求
-	Post Addr:Port/chaincode
+	Post https://a6377d73838047d39f8527f035520915-vp0.us.blockchain.ibm.com:5002/chaincode
 	{
 	  "jsonrpc": "2.0",
 	  "method": "query",
 	  "params": {
 	    "type": 1,
-	    "chaincodeID":{
-	        "name":"ChaincodeID"
+	    "chaincodeID": {
+	      "name": "160d9b88e83856238d689e329768e86e319047ad61aebf9e15a2c0d8636f4ad30621d60352f46012dfaf150f25d160cdb2f3cf148c611997777e1189cd218c7b"
 	    },
 	    "ctorMsg": {
-	        "args":["query",key]
+	      "function": "queryUserInfo",
+	      "args": [
+	        "2"
+	      ]
 	    },
-	    "secureContext": VPName
+	    "secureContext": "user_type1_0"
 	  },
-	  "id": 3
+	  "id": 0
 	}
 
 模拟数据
