@@ -43,10 +43,7 @@ type JobStaticInfoStruct struct {
 	Demand  string
 }
 
-func (t *SimpleChaincode) GetUserChaincodeToCall() string {
-	chainCodeToCall := "160d9b88e83856238d689e329768e86e319047ad61aebf9e15a2c0d8636f4ad30621d60352f46012dfaf150f25d160cdb2f3cf148c611997777e1189cd218c7b"
-	return chainCodeToCall
-}
+const UserInfoChaincodeID string = "160d9b88e83856238d689e329768e86e319047ad61aebf9e15a2c0d8636f4ad30621d60352f46012dfaf150f25d160cdb2f3cf148c611997777e1189cd218c7b"
 
 // ============================================================================================================================
 // Init function
@@ -117,10 +114,9 @@ func (t *SimpleChaincode) Add(stub shim.ChaincodeStubInterface, args []string) (
 	}
 
 	//invoke UserInfo chaincode to add this job`s ID attach to the agency who publish this job
-	chainCodeToCall := t.GetUserChaincodeToCall()
 	f := "AddTX"
 	invokeArgs := util.ToChaincodeArgs(f, string(JobInfoJsonType.UserID), string(JobInfoJsonType.JobID))
-	response, err := stub.InvokeChaincode(chainCodeToCall, invokeArgs)
+	response, err := stub.InvokeChaincode(UserInfoChaincodeID, invokeArgs)
 	if err != nil {
 		errStr := fmt.Sprintf("Failed to invoke chaincode. Got error: %s", err.Error())
 		fmt.Printf(errStr)
