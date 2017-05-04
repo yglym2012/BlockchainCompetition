@@ -112,7 +112,7 @@ func (t *SimpleChaincode) Add(stub shim.ChaincodeStubInterface, args []string) (
 	}
 
 	//invoke UserInfo chaincode to add this job`s ID attach to the agency who publish this job
-	f := "AddTX"
+	f := "addTX"
 	invokeArgs := util.ToChaincodeArgs(f, JobInfoJsonType.UserID, JobInfoJsonType.JobID)
 	response, err := stub.InvokeChaincode(UserInfoChaincodeID, invokeArgs)
 	if err != nil {
