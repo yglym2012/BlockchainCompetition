@@ -43,7 +43,7 @@ type JobStaticInfoStruct struct {
 }
 
 func (t *SimpleChaincode) GetUserChaincodeToCall() string {
-	chainCodeToCall := "59d5075e7146d8df37bdcb0c289c293c66ee2a56c0f8d833410ff7cd8d3dd6c65ff0c6966c1914109ed7e04423bc73967b7c693fbeb383bb1a057c75b37e2674"
+	chainCodeToCall := "160d9b88e83856238d689e329768e86e319047ad61aebf9e15a2c0d8636f4ad30621d60352f46012dfaf150f25d160cdb2f3cf148c611997777e1189cd218c7b"
 	return chainCodeToCall
 }
 
@@ -154,7 +154,7 @@ func (t *SimpleChaincode) Delete(stub shim.ChaincodeStubInterface, args []string
 
 	err = stub.DelState(JobID) //remove the key from chaincode state
 	if err != nil {
-		return nil, errors.New("Failed to delete ", JobID)
+		return nil, errors.New("Failed to delete this job information! ")
 	}
 
 	return nil, nil
@@ -230,6 +230,10 @@ func (t *SimpleChaincode) AddTotalApplied(stub shim.ChaincodeStubInterface, args
 	if err != nil {
 		return nil, err
 	}
+	err = stub.PutState(JobID, []byte(a))
+	if err != nil {
+		return nil, errors.New("Failed to putstate")
+	}
 
 	return nil, nil
 }
@@ -271,6 +275,10 @@ func (t *SimpleChaincode) AddTotalWaitCheck(stub shim.ChaincodeStubInterface, ar
 	a, err := json.Marshal(JobInfoJsonType)
 	if err != nil {
 		return nil, err
+	}
+	err = stub.PutState(JobID, []byte(a))
+	if err != nil {
+		return nil, errors.New("Failed to putstate")
 	}
 
 	return nil, nil
@@ -314,6 +322,10 @@ func (t *SimpleChaincode) AddTotalHired(stub shim.ChaincodeStubInterface, args [
 	if err != nil {
 		return nil, err
 	}
+	err = stub.PutState(JobID, []byte(a))
+	if err != nil {
+		return nil, errors.New("Failed to putstate")
+	}
 
 	return nil, nil
 }
@@ -356,6 +368,10 @@ func (t *SimpleChaincode) AddTotalSettled(stub shim.ChaincodeStubInterface, args
 	if err != nil {
 		return nil, err
 	}
+	err = stub.PutState(JobID, []byte(a))
+	if err != nil {
+		return nil, errors.New("Failed to putstate")
+	}
 
 	return nil, nil
 }
@@ -395,6 +411,10 @@ func (t *SimpleChaincode) AddTX(stub shim.ChaincodeStubInterface, args []string)
 	a, err := json.Marshal(JobInfoJsonType)
 	if err != nil {
 		return nil, err
+	}
+	err = stub.PutState(JobID, []byte(a))
+	if err != nil {
+		return nil, errors.New("Failed to putstate")
 	}
 
 	return nil, nil
