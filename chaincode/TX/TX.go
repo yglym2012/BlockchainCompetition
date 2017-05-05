@@ -266,8 +266,8 @@ func (t *SimpleChaincode) Evaluate(stub shim.ChaincodeStubInterface, args []stri
 			}
 			// Query salary
 			f1 := "querySalary"
-			queryArgs1 := util.ToChaincodeArgs(f, TXInfoJsonType.JobID)
-			Salary, err := stub.QueryChaincode(t.GetJobChaincodeToCall(), queryArgs)
+			queryArgs1 := util.ToChaincodeArgs(f1, TXInfoJsonType.JobID)
+			Salary, err := stub.QueryChaincode(t.GetJobChaincodeToCall(), queryArgs1)
 			if err != nil {
 				errStr := fmt.Sprintf("Failed to query chaincode. Got error: %s", err.Error())
 				fmt.Printf(errStr)
