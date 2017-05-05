@@ -30,12 +30,12 @@ type TXInfoStruct struct {
 }
 
 func (t *SimpleChaincode) GetJobChaincodeToCall() string {
-	chainCodeToCall := "59d5075e7146d8df37bdcb0c289c293c66ee2a56c0f8d833410ff7cd8d3dd6c65ff0c6966c1914109ed7e04423bc73967b7c693fbeb383bb1a057c75b37e2674"
+	chainCodeToCall := "8790b59c32feacc3c5eedf10ef8e8362d99da1c4753aa60b476e6f9ea9cea02143c482abce760a9e38e191f5fcb501ca1e7668143c296b68d68e95fb3965eadc"
 	return chainCodeToCall
 }
 
 func (t *SimpleChaincode) GetUserChaincodeToCall() string {
-	chainCodeToCall := "59d5075e7146d8df37bdcb0c289c293c66ee2a56c0f8d833410ff7cd8d3dd6c65ff0c6966c1914109ed7e04423bc73967b7c693fbeb383bb1a057c75b37e2674"
+	chainCodeToCall := "160d9b88e83856238d689e329768e86e319047ad61aebf9e15a2c0d8636f4ad30621d60352f46012dfaf150f25d160cdb2f3cf148c611997777e1189cd218c7b"
 	return chainCodeToCall
 }
 
@@ -68,13 +68,13 @@ func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface, function stri
 
 // ============================================================================================================================
 // Create function is used to create a tx when a student applied a job and auto to check this application
-// 1 input
+// 2 input
 // "TxID","TxInfo"
 // ============================================================================================================================
 func (t *SimpleChaincode) Create(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 	var err error
-	if len(args) != 4 {
-		return nil, errors.New("Incorrect number of arguments. Expecting 4. ")
+	if len(args) != 2 {
+		return nil, errors.New("Incorrect number of arguments. Expecting 2. ")
 	}
 	TxID := args[0]
 	TxInfo := args[1]
@@ -101,8 +101,8 @@ func (t *SimpleChaincode) Create(stub shim.ChaincodeStubInterface, args []string
 	//attach the TxID to related job
 	//invoke JobInfo chaincode to add this TxID attach to the Job
 	jobChainCodeToCall := t.GetJobChaincodeToCall()
-	funcOfJobChaincode := "AddTX"
-	invokeArgsOfJobChaincode := util.ToChaincodeArgs(funcOfJobChaincode, string(TXInfoJsonType.JobID), string(TXInfoJsonType.TxID))
+	funcOfJobChaincode := "addTX"
+	invokeArgsOfJobChaincode := util.ToChaincodeArgs(funcOfJobChaincode, TXInfoJsonType.JobID, TXInfoJsonType.TxID)
 	response1, err := stub.InvokeChaincode(jobChainCodeToCall, invokeArgsOfJobChaincode)
 	if err != nil {
 		errStr := fmt.Sprintf("Failed to invoke chaincode. Got error: %s", err.Error())
@@ -114,8 +114,8 @@ func (t *SimpleChaincode) Create(stub shim.ChaincodeStubInterface, args []string
 	//attach the TxID to related student
 	//invoke UserInfo chaincode to add this TxID attach to the student
 	userChainCodeToCall := t.GetUserChaincodeToCall()
-	funcOfUserChaincode := "AddTX"
-	invokeArgsOfUserChaincode := util.ToChaincodeArgs(funcOfUserChaincode, string(TXInfoJsonType.UserID), string(TXInfoJsonType.TxID))
+	funcOfUserChaincode := "addTX"
+	invokeArgsOfUserChaincode := util.ToChaincodeArgs(funcOfUserChaincode, TXInfoJsonType.UserID, TXInfoJsonType.TxID)
 	response2, err := stub.InvokeChaincode(userChainCodeToCall, invokeArgsOfUserChaincode)
 	if err != nil {
 		errStr := fmt.Sprintf("Failed to invoke chaincode. Got error: %s", err.Error())
@@ -126,8 +126,8 @@ func (t *SimpleChaincode) Create(stub shim.ChaincodeStubInterface, args []string
 
 	//auto check
 	// Query User`s credit score
-	f := "query"
-	queryArgs := util.ToChaincodeArgs(f, string(TXInfoJsonType.UserID))
+	f := "queryCurrentCreditScore"
+	queryArgs := util.ToChaincodeArgs(f, TXInfoJsonType.UserID)
 	response, err := stub.QueryChaincode(userChainCodeToCall, queryArgs)
 	if err != nil {
 		errStr := fmt.Sprintf("Failed to query chaincode. Got error: %s", err.Error())
@@ -141,15 +141,20 @@ func (t *SimpleChaincode) Create(stub shim.ChaincodeStubInterface, args []string
 		return nil, errors.New(errStr)
 	}
 	if Score > 8 {
-		TXInfoJsonType.Status = []byte("已通过审核待评价")
+		TXInfoJsonType.Status = "已通过审核待评价"
 	} else {
-		TXInfoJsonType.Status = []byte("未通过自动审核")
+		TXInfoJsonType.Status = "未通过自动审核"
 	}
 
 	// put the new TxInfo into state
 	a, err := json.Marshal(TXInfoJsonType)
 	if err != nil {
 		return nil, err
+	}
+	// put the new score into state
+	err = stub.PutState(TxID, a)
+	if err != nil {
+		return nil, errors.New("Failed to putstate")
 	}
 
 	return nil, nil
@@ -166,7 +171,7 @@ func (t *SimpleChaincode) ArtificialCheck(stub shim.ChaincodeStubInterface, args
 		return nil, errors.New("Incorrect number of arguments. Expecting 2. ")
 	}
 	TxID := args[0]
-	Result := strconv.Atoi(args[1])
+	Result, _ := strconv.Atoi(args[1])
 	TxInfo, err := stub.GetState(TxID)
 
 	//test if the TX has been existed
@@ -184,11 +189,11 @@ func (t *SimpleChaincode) ArtificialCheck(stub shim.ChaincodeStubInterface, args
 		fmt.Println("error:", err)
 	}
 
-	if strings.EqualFold(string(TXInfoJsonType.Status), "未通过自动审核") {
+	if strings.EqualFold(TXInfoJsonType.Status, "未通过自动审核") {
 		if Result == 1 {
-			TXInfoJsonType.Status = []byte("已通过审核待评价")
+			TXInfoJsonType.Status = "已通过审核待评价"
 		} else {
-			TXInfoJsonType.Status = []byte("未通过审核，已回绝")
+			TXInfoJsonType.Status = "未通过审核，已回绝"
 		}
 	} else {
 		return nil, errors.New("Incorrect stage of status. Expecting 未通过自动审核. ")
@@ -198,6 +203,11 @@ func (t *SimpleChaincode) ArtificialCheck(stub shim.ChaincodeStubInterface, args
 	a, err := json.Marshal(TXInfoJsonType)
 	if err != nil {
 		return nil, err
+	}
+	// put the new score into state
+	err = stub.PutState(TxID, a)
+	if err != nil {
+		return nil, errors.New("Failed to putstate")
 	}
 
 	return nil, nil
@@ -234,18 +244,28 @@ func (t *SimpleChaincode) Evaluate(stub shim.ChaincodeStubInterface, args []stri
 		fmt.Println("error:", err)
 	}
 
-	if strings.EqualFold(string(TXInfoJsonType.UserID), UserID) {
-		TXInfoJsonType.AgencyScore = []byte(Score)
+	if strings.EqualFold(TXInfoJsonType.UserID, UserID) {
+		TXInfoJsonType.AgencyScore = Score
 	} else {
-		TXInfoJsonType.StuScore = []byte(Score)
+		TXInfoJsonType.StuScore = Score
 	}
 
-	if TXInfoJsonType.StuScore != nil && TXInfoJsonType.AgencyScore != nil {
-		if TXInfoJsonType.StuScore > 8 {
+	if []byte(TXInfoJsonType.StuScore) != nil && []byte(TXInfoJsonType.AgencyScore) != nil {
+		StudentScore, _ = strconv.Atoi(TXInfoJsonType.StuScore)
+		if StudentScore > 8 {
 			// Query agency`s ID
-			f := "queryAgencyIDandSalary"
-			queryArgs := util.ToChaincodeArgs(f, string(TXInfoJsonType.JobID))
-			AgencyID, Salary, err := stub.QueryChaincode(t.GetJobChaincodeToCall(), queryArgs)
+			f := "queryAgencyID"
+			queryArgs := util.ToChaincodeArgs(f, TXInfoJsonType.JobID)
+			AgencyID, err := stub.QueryChaincode(t.GetJobChaincodeToCall(), queryArgs)
+			if err != nil {
+				errStr := fmt.Sprintf("Failed to query chaincode. Got error: %s", err.Error())
+				fmt.Printf(errStr)
+				return nil, errors.New(errStr)
+			}
+			// Query salary
+			f1 := "querySalary"
+			queryArgs1 := util.ToChaincodeArgs(f, TXInfoJsonType.JobID)
+			Salary, err := stub.QueryChaincode(t.GetJobChaincodeToCall(), queryArgs)
 			if err != nil {
 				errStr := fmt.Sprintf("Failed to query chaincode. Got error: %s", err.Error())
 				fmt.Printf(errStr)
@@ -253,7 +273,7 @@ func (t *SimpleChaincode) Evaluate(stub shim.ChaincodeStubInterface, args []stri
 			}
 
 			f2 := "autoSettle"
-			invokeArgs2 := util.ToChaincodeArgs(f2, string(TXInfoJsonType.UserID), string(AgencyID), string(Salary))
+			invokeArgs2 := util.ToChaincodeArgs(f2, TXInfoJsonType.UserID, string(AgencyID), string(Salary))
 			response2, err := stub.InvokeChaincode(t.GetUserChaincodeToCall(), invokeArgs2)
 			if err != nil {
 				errStr := fmt.Sprintf("Failed to invoke chaincode. Got error: %s", err.Error())
@@ -263,15 +283,20 @@ func (t *SimpleChaincode) Evaluate(stub shim.ChaincodeStubInterface, args []stri
 
 			fmt.Printf("Invoke chaincode successful. Got response %s", string(response))
 
-			TXInfoJsonType.Status = []byte("已结算")
+			TXInfoJsonType.Status = "已结算"
 		} else {
-			TXInfoJsonType.Status = []byte("已评价未通过自动结算")
+			TXInfoJsonType.Status = "已评价未通过自动结算"
 		}
 	} else {
 		// put the new TxInfo into state
 		a, err := json.Marshal(TXInfoJsonType)
 		if err != nil {
 			return nil, err
+		}
+		// put the new score into state
+		err = stub.PutState(TxID, a)
+		if err != nil {
+			return nil, errors.New("Failed to putstate")
 		}
 		return nil, nil
 	}
@@ -280,6 +305,11 @@ func (t *SimpleChaincode) Evaluate(stub shim.ChaincodeStubInterface, args []stri
 	a, err := json.Marshal(TXInfoJsonType)
 	if err != nil {
 		return nil, err
+	}
+	// put the new score into state
+	err = stub.PutState(TxID, a)
+	if err != nil {
+		return nil, errors.New("Failed to putstate")
 	}
 	return nil, nil
 
