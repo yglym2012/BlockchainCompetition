@@ -83,7 +83,7 @@ invoke：
 	  "params": {
 	    "type": 1,
 	    "chaincodeID": {
-	      "name": "160d9b88e83856238d689e329768e86e319047ad61aebf9e15a2c0d8636f4ad30621d60352f46012dfaf150f25d160cdb2f3cf148c611997777e1189cd218c7b"
+	      "name": "8790b59c32feacc3c5eedf10ef8e8362d99da1c4753aa60b476e6f9ea9cea02143c482abce760a9e38e191f5fcb501ca1e7668143c296b68d68e95fb3965eadc"
 	    },
 	    "ctorMsg": {
 	      "function": "addTX",
@@ -114,7 +114,7 @@ query：
 	  "params": {
 	    "type": 1,
 	    "chaincodeID": {
-	      "name": "160d9b88e83856238d689e329768e86e319047ad61aebf9e15a2c0d8636f4ad30621d60352f46012dfaf150f25d160cdb2f3cf148c611997777e1189cd218c7b"
+	      "name": "8790b59c32feacc3c5eedf10ef8e8362d99da1c4753aa60b476e6f9ea9cea02143c482abce760a9e38e191f5fcb501ca1e7668143c296b68d68e95fb3965eadc"
 	    },
 	    "ctorMsg": {
 	      "function": "queryJobInfo",

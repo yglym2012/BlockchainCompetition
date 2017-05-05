@@ -57,12 +57,12 @@ invoke：
 	  "params": {
 	    "type": 1,
 	    "chaincodeID": {
-	      "name": "160d9b88e83856238d689e329768e86e319047ad61aebf9e15a2c0d8636f4ad30621d60352f46012dfaf150f25d160cdb2f3cf148c611997777e1189cd218c7b"
+	      "name": "96ef2509c45f6445eb511962014ec2385ab8cf3344fa0b4d6b73dcefe671c0dd1d5c25d927932535ade78d8c87d9c7f6e5fda4d49bff64c196f38f9ebe92a4ba"
 	    },
 	    "ctorMsg": {
-	      "function": "autoSettle",
+	      "function": "create",
 	      "args": [
-	        "1","2","50"
+	        "1","2"
 	      ]
 	    },
 	    "secureContext": "user_type1_0"
@@ -82,10 +82,10 @@ query：
 	  "params": {
 	    "type": 1,
 	    "chaincodeID": {
-	      "name": "160d9b88e83856238d689e329768e86e319047ad61aebf9e15a2c0d8636f4ad30621d60352f46012dfaf150f25d160cdb2f3cf148c611997777e1189cd218c7b"
+	      "name": "96ef2509c45f6445eb511962014ec2385ab8cf3344fa0b4d6b73dcefe671c0dd1d5c25d927932535ade78d8c87d9c7f6e5fda4d49bff64c196f38f9ebe92a4ba"
 	    },
 	    "ctorMsg": {
-	      "function": "queryUserInfo",
+	      "function": "queryTxInfo",
 	      "args": [
 	        "2"
 	      ]
