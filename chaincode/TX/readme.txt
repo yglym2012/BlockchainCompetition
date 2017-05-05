@@ -97,9 +97,5 @@ query：
 
 模拟数据
 
-{\"Balance\": \"100\",\"CreditScore\": {\"CurrentCreditScore\": \"6\",\"RateTimes\": \"1\",\"TotalCreditScore\": \"6\"},\"Jobs\": [\"123\",\"123\"],\"UserInfo\": {\"AgencyName\": \"\",\"BCID\": \"123\",\"Gender\": \"0\",\"Password\": \"123\",\"RealName\": \"\",\"Role\": \"0\",\"School\": \"\",\"Status\": \"1\",\"StuID\": \"\",\"Tele\": \"\",\"UserID\": \"1\",\"Username\": \"abc\"}}
-
-{\"Balance\": \"100\",\"CreditScore\": {\"CurrentCreditScore\": \"6\",\"RateTimes\": \"1\",\"TotalCreditScore\": \"6\"},\"Jobs\": [\"123\",\"123\"],\"UserInfo\": {\"AgencyName\": \"\",\"BCID\": \"123\",\"Gender\": \"0\",\"Password\": \"123\",\"RealName\": \"\",\"Role\": \"0\",\"School\": \"\",\"Status\": \"1\",\"StuID\": \"\",\"Tele\": \"\",\"UserID\": \"2\",\"Username\": \"abc\"}}
-
-{\"Balance\": \"100\",\"CreditScore\": {\"CurrentCreditScore\": \"6\",\"RateTimes\": \"1\",\"TotalCreditScore\": \"6\"},\"Jobs\": [\"123\",\"123\"],\"UserInfo\": {\"AgencyName\": \"\",\"BCID\": \"123\",\"Gender\": \"0\",\"Password\": \"123\",\"RealName\": \"\",\"Role\": \"0\",\"School\": \"\",\"Status\": \"1\",\"StuID\": \"\",\"Tele\": \"\",\"UserID\": \"3\",\"Username\": \"abc\"}}
+{\"ApplyTime\": \"123\",\"JobID\": \"j1\",\"Status\": \"\",\"UserID\": \"1\",\"TxID\": \"tx1\",\"StuScore\": \"\",\"AgencyScore\": \"\"}
 
