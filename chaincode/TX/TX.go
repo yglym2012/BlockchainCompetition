@@ -283,7 +283,7 @@ func (t *SimpleChaincode) Evaluate(stub shim.ChaincodeStubInterface, args []stri
 				return nil, errors.New(errStr)
 			}
 
-			fmt.Printf("Invoke chaincode successful. Got response %s", string(response))
+			fmt.Printf("Invoke chaincode successful. Got response %s", string(response2))
 
 			TXInfoJsonType.Status = "已结算"
 		} else {
