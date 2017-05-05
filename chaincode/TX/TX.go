@@ -10,7 +10,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/hyperledger/fabric/core/chaincode/shim"
+	"github.com/hyperledger/fabric/core/util"
 	"strconv"
+	"strings"
 )
 
 type SimpleChaincode struct {
@@ -109,7 +111,7 @@ func (t *SimpleChaincode) Create(stub shim.ChaincodeStubInterface, args []string
 		fmt.Printf(errStr)
 		return nil, errors.New(errStr)
 	}
-	fmt.Printf("Invoke chaincode successful. Got response %s", string(response))
+	fmt.Printf("Invoke chaincode successful. Got response %s", string(response1))
 
 	//attach the TxID to related student
 	//invoke UserInfo chaincode to add this TxID attach to the student
@@ -122,7 +124,7 @@ func (t *SimpleChaincode) Create(stub shim.ChaincodeStubInterface, args []string
 		fmt.Printf(errStr)
 		return nil, errors.New(errStr)
 	}
-	fmt.Printf("Invoke chaincode successful. Got response %s", string(response))
+	fmt.Printf("Invoke chaincode successful. Got response %s", string(response2))
 
 	//auto check
 	// Query User`s credit score
@@ -251,7 +253,7 @@ func (t *SimpleChaincode) Evaluate(stub shim.ChaincodeStubInterface, args []stri
 	}
 
 	if []byte(TXInfoJsonType.StuScore) != nil && []byte(TXInfoJsonType.AgencyScore) != nil {
-		StudentScore, _ = strconv.Atoi(TXInfoJsonType.StuScore)
+		StudentScore, _ := strconv.Atoi(TXInfoJsonType.StuScore)
 		if StudentScore > 8 {
 			// Query agency`s ID
 			f := "queryAgencyID"
