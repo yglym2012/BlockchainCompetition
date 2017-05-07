@@ -111,9 +111,10 @@ func (t *SimpleChaincode) Add(stub shim.ChaincodeStubInterface, args []string) (
 	err = json.Unmarshal([]byte(JobInfo), &JobInfoJsonType)
 	if err != nil {
 		fmt.Println("error:", err)
+		return nil, errors.New(err)
 	}
 
-	jsonResp := JobInfoJsonType.UserID + "," + JobInfoJsonType.AgencyName + "," + JobInfoJsonType.TotalHired
+	jsonResp := JobInfo + "," + JobInfoJsonType.UserID + "," + JobInfoJsonType.AgencyName + "," + JobInfoJsonType.TotalHired
 	return nil, errors.New(jsonResp)
 
 	//invoke UserInfo chaincode to add this job`s ID attach to the agency who publish this job
