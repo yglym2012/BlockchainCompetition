@@ -23,7 +23,7 @@ type SimpleChaincode struct {
 type JobInfoStruct struct {
 	JobID          string
 	UserID         string
-	UserName       string
+	AgencyName     string
 	JobDetail      JobStaticInfoStruct
 	Txs            []string
 	TotalApplied   string
