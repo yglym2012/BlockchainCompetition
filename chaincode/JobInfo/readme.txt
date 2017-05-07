@@ -132,3 +132,5 @@ query：
 {\"JobDetail\": {\"Demand\": \"\",\"Day\": \"\",\"Place\": \"\",\"Salary\": \"50\",\"JobTime\": \"\"},\"JobID\": \"j1\",\"UserID\": \"1\",\"UserName\": \"\",\"TotalApplied\": \"123\",\"TotalHired\": \"123\",\"TotalSettled\": \"123\",\"TotalWaitCheck\": \"123\",\"Txs\": [\"123\",\"123\"]}
 
 {\"JobDetail\": {\"Demand\": \"\",\"Day\": \"\",\"Place\": \"\",\"Salary\": \"50\",\"JobTime\": \"\"},\"JobID\": \"j2\",\"UserID\": \"2\",\"UserName\": \"\",\"TotalApplied\": \"123\",\"TotalHired\": \"123\",\"TotalSettled\": \"123\",\"TotalWaitCheck\": \"123\",\"Txs\": [\"123\",\"123\"]}
+
+{\"JobDetail\": {\"Demand\": \"fuck\",\"Day\": \"1\",\"Place\": \"one\",\"Salary\": \"100\",\"JobTime\": \"1011\"},\"JobID\": \"590e8257e588d600563916c4\",\"UserID\": \"0987\",\"UserName\": \"bitch\",\"TotalApplied\": \"0\",\"TotalHired\": \"0\",\"TotalSettled\": \"0\",\"TotalWaitCheck\": \"0\",\"Txs\": [\"123\",\"123\"]}
