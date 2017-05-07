@@ -12,7 +12,6 @@ import (
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	"github.com/hyperledger/fabric/core/util"
 	"strconv"
-	"strings"
 )
 
 type SimpleChaincode struct {
@@ -114,13 +113,11 @@ func (t *SimpleChaincode) Add(stub shim.ChaincodeStubInterface, args []string) (
 		fmt.Println("error:", err)
 	}
 
+	jsonResp := JobInfoJsonType.UserID + "," + JobInfoJsonType.AgencyName + "," + JobInfoJsonType.TotalHired
+	return nil, errors.New(jsonResp)
+
 	//invoke UserInfo chaincode to add this job`s ID attach to the agency who publish this job
 	f := "addTX"
-	if strings.EqualFold(JobInfoJsonType.UserID, "0987") {
-		return nil, errors.New("qudaole")
-	} else {
-		return nil, errors.New("meiqudao")
-	}
 	invokeArgs := util.ToChaincodeArgs(f, JobInfoJsonType.UserID, JobInfoJsonType.JobID)
 	response, err := stub.InvokeChaincode(UserInfoChaincodeID, invokeArgs)
 	if err != nil {
