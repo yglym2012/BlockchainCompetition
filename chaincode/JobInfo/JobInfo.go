@@ -111,7 +111,7 @@ func (t *SimpleChaincode) Add(stub shim.ChaincodeStubInterface, args []string) (
 	err = json.Unmarshal([]byte(JobInfo), &JobInfoJsonType)
 	if err != nil {
 		fmt.Println("error:", err)
-		return nil, errors.New(err)
+		return nil, errors.New(err.Error())
 	}
 
 	jsonResp := JobInfo + "," + JobInfoJsonType.UserID + "," + JobInfoJsonType.AgencyName + "," + JobInfoJsonType.TotalHired
