@@ -223,6 +223,17 @@ func (t *SimpleChaincode) ArtificialCheck(stub shim.ChaincodeStubInterface, args
 	if strings.EqualFold(TXInfoJsonType.Status, "未通过自动审核") {
 		if Result == 1 {
 			TXInfoJsonType.Status = "已通过审核待评价"
+			//addTotalHired
+			jobChainCodeToCall := t.GetJobChaincodeToCall()
+			invokeArgsOfJobChaincode9 := util.ToChaincodeArgs("addTotalHired", TXInfoJsonType.JobID)
+			response9, err := stub.InvokeChaincode(jobChainCodeToCall, invokeArgsOfJobChaincode9)
+			if err != nil {
+				errStr := fmt.Sprintf("Failed to invoke chaincode. Got error: %s", err.Error())
+				fmt.Printf(errStr)
+				return nil, errors.New(errStr)
+			}
+			fmt.Printf("Invoke chaincode successful. Got response %s", string(response9))
+
 		} else {
 			TXInfoJsonType.Status = "未通过审核，已回绝"
 		}
