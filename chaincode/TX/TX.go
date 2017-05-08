@@ -291,7 +291,7 @@ func (t *SimpleChaincode) Evaluate(stub shim.ChaincodeStubInterface, args []stri
 		TXInfoJsonType.StuScore = Score
 	}
 
-	if []byte(TXInfoJsonType.StuScore) != nil && []byte(TXInfoJsonType.AgencyScore) != nil {
+	if len([]byte(TXInfoJsonType.StuScore)) != 0 && len([]byte(TXInfoJsonType.AgencyScore)) != 0 {
 		StudentScore, _ := strconv.Atoi(TXInfoJsonType.StuScore)
 		if StudentScore >= 8 {
 			// Query agency`s ID
