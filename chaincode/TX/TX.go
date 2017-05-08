@@ -32,12 +32,12 @@ type TXInfoStruct struct {
 }
 
 func (t *SimpleChaincode) GetJobChaincodeToCall() string {
-	chainCodeToCall := "a4b2d7c69397fd0ebe50bd5c401dc305bdf262aeb8aae8eafe57040cfe3d85daae327c9de1b450c4b7d92360915682e5dd5557e59adfae7d112a7c8f4b1b4db0"
+	chainCodeToCall := "cb8e521221d7b454064929e2aee27e2c9970795ae7be314d4324a0577287cfe64fe52ff6b2c4e230437a5ca4bad8f7b026574fb72b5bf0bd4a13b2f266db14c6"
 	return chainCodeToCall
 }
 
 func (t *SimpleChaincode) GetUserChaincodeToCall() string {
-	chainCodeToCall := "160d9b88e83856238d689e329768e86e319047ad61aebf9e15a2c0d8636f4ad30621d60352f46012dfaf150f25d160cdb2f3cf148c611997777e1189cd218c7b"
+	chainCodeToCall := "9d29747f0b642ed65f481fbc1132d518834b3099671ad5d86feb8609202197f26cefcca348942ce9facdbe8312b5d7ee5598a6d9522c34ae9755720c1176a598"
 	return chainCodeToCall
 }
 
