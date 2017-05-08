@@ -43,7 +43,7 @@ type JobStaticInfoStruct struct {
 	Demand  string
 }
 
-const UserInfoChaincodeID string = "160d9b88e83856238d689e329768e86e319047ad61aebf9e15a2c0d8636f4ad30621d60352f46012dfaf150f25d160cdb2f3cf148c611997777e1189cd218c7b"
+const UserInfoChaincodeID string = "9d29747f0b642ed65f481fbc1132d518834b3099671ad5d86feb8609202197f26cefcca348942ce9facdbe8312b5d7ee5598a6d9522c34ae9755720c1176a598"
 
 // ============================================================================================================================
 // Init function
