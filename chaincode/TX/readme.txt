@@ -99,3 +99,9 @@ query：
 
 {\"ApplyTime\": \"123\",\"JobID\": \"j1\",\"Status\": \"\",\"UserID\": \"1\",\"TxID\": \"tx1\",\"StuScore\": \"\",\"AgencyScore\": \"\"}
 
+{\"ApplyTime\": \"1494147008\",\"JobID\": \"590e9e4ee588d600d4fb0aaf\",\"Status\": \"\",\"UserID\": \"1234\",\"TxID\": \"590edfc0e588d601914ab18a\",\"StuScore\": \"\",\"AgencyScore\": \"6\"}
+
+{\"AgencyScore\": \"6\", \"UserID\": \"1\", \"ApplyTime\": \"1494147008\", \"JobID\": \"590e9e4ee588d600d4fb0aaf\", \"State\": \"\", \"StuScore\": \"6\", \"TxID\": \"590edfc0e588d601914ab18a\"}
+
+
+{\"ApplyTime\": \"123\",\"JobID\": \"590e9e4ee588d600d4fb0aaf\",\"Status\": \"\",\"UserID\": \"1\",\"TxID\": \"tx1\",\"StuScore\": \"\",\"AgencyScore\": \"\"}

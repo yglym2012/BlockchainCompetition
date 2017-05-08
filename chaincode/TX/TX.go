@@ -113,6 +113,17 @@ func (t *SimpleChaincode) Create(stub shim.ChaincodeStubInterface, args []string
 	}
 	fmt.Printf("Invoke chaincode successful. Got response %s", string(response1))
 
+	//addTotalApplied
+	funcOfJobChaincode3 := "addTotalApplied"
+	invokeArgsOfJobChaincode3 := util.ToChaincodeArgs(funcOfJobChaincode3, TXInfoJsonType.JobID)
+	response3, err := stub.InvokeChaincode(jobChainCodeToCall, invokeArgsOfJobChaincode3)
+	if err != nil {
+		errStr := fmt.Sprintf("Failed to invoke chaincode. Got error: %s", err.Error())
+		fmt.Printf(errStr)
+		return nil, errors.New(errStr)
+	}
+	fmt.Printf("Invoke chaincode successful. Got response %s", string(response3))
+
 	//attach the TxID to related student
 	//invoke UserInfo chaincode to add this TxID attach to the student
 	userChainCodeToCall := t.GetUserChaincodeToCall()
@@ -144,8 +155,26 @@ func (t *SimpleChaincode) Create(stub shim.ChaincodeStubInterface, args []string
 	}
 	if Score > 8 {
 		TXInfoJsonType.Status = "已通过审核待评价"
+		//addTotalHired
+		invokeArgsOfJobChaincode5 := util.ToChaincodeArgs("addTotalHired", TXInfoJsonType.JobID)
+		response5, err := stub.InvokeChaincode(jobChainCodeToCall, invokeArgsOfJobChaincode5)
+		if err != nil {
+			errStr := fmt.Sprintf("Failed to invoke chaincode. Got error: %s", err.Error())
+			fmt.Printf(errStr)
+			return nil, errors.New(errStr)
+		}
+		fmt.Printf("Invoke chaincode successful. Got response %s", string(response5))
 	} else {
 		TXInfoJsonType.Status = "未通过自动审核"
+		//addTotalWaitCheck
+		invokeArgsOfJobChaincode4 := util.ToChaincodeArgs("addTotalWaitCheck", TXInfoJsonType.JobID, "1")
+		response4, err := stub.InvokeChaincode(jobChainCodeToCall, invokeArgsOfJobChaincode4)
+		if err != nil {
+			errStr := fmt.Sprintf("Failed to invoke chaincode. Got error: %s", err.Error())
+			fmt.Printf(errStr)
+			return nil, errors.New(errStr)
+		}
+		fmt.Printf("Invoke chaincode successful. Got response %s", string(response4))
 	}
 
 	// put the new TxInfo into state
@@ -197,6 +226,16 @@ func (t *SimpleChaincode) ArtificialCheck(stub shim.ChaincodeStubInterface, args
 		} else {
 			TXInfoJsonType.Status = "未通过审核，已回绝"
 		}
+		//addTotalWaitCheck
+		jobChainCodeToCall := t.GetJobChaincodeToCall()
+		invokeArgsOfJobChaincode6 := util.ToChaincodeArgs("addTotalWaitCheck", TXInfoJsonType.JobID, "-1")
+		response6, err := stub.InvokeChaincode(jobChainCodeToCall, invokeArgsOfJobChaincode6)
+		if err != nil {
+			errStr := fmt.Sprintf("Failed to invoke chaincode. Got error: %s", err.Error())
+			fmt.Printf(errStr)
+			return nil, errors.New(errStr)
+		}
+		fmt.Printf("Invoke chaincode successful. Got response %s", string(response6))
 	} else {
 		return nil, errors.New("Incorrect stage of status. Expecting 未通过自动审核. ")
 	}
@@ -286,6 +325,16 @@ func (t *SimpleChaincode) Evaluate(stub shim.ChaincodeStubInterface, args []stri
 			fmt.Printf("Invoke chaincode successful. Got response %s", string(response2))
 
 			TXInfoJsonType.Status = "已结算"
+			//addTotalSettled
+			jobChainCodeToCall := t.GetJobChaincodeToCall()
+			invokeArgsOfJobChaincode7 := util.ToChaincodeArgs("addTotalSettled", TXInfoJsonType.JobID)
+			response7, err := stub.InvokeChaincode(jobChainCodeToCall, invokeArgsOfJobChaincode7)
+			if err != nil {
+				errStr := fmt.Sprintf("Failed to invoke chaincode. Got error: %s", err.Error())
+				fmt.Printf(errStr)
+				return nil, errors.New(errStr)
+			}
+			fmt.Printf("Invoke chaincode successful. Got response %s", string(response7))
 		} else {
 			TXInfoJsonType.Status = "已评价未通过自动结算"
 		}

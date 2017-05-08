@@ -37,7 +37,7 @@ type UserStaticInfoStruct struct {
 	Tele       string
 	AgencyName string
 	Role       string
-	UserName   string
+	Username   string
 	BCID       string
 	Password   string
 	RealName   string

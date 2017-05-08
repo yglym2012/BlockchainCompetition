@@ -238,14 +238,15 @@ func (t *SimpleChaincode) AddTotalApplied(stub shim.ChaincodeStubInterface, args
 // ============================================================================================================================
 // AddTotalWaitCheck function is used to add 1 when auto check not passed
 // 1 input
-// "JobID"
+// "JobID","1/-1"
 // ============================================================================================================================
 func (t *SimpleChaincode) AddTotalWaitCheck(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 	var err error
-	if len(args) != 1 {
-		return nil, errors.New("Incorrect number of arguments. Expecting 1. ")
+	if len(args) != 2 {
+		return nil, errors.New("Incorrect number of arguments. Expecting 2. ")
 	}
 	JobID := args[0]
+	Num, _ := strconv.Atoi(args[1])
 	JobInfo, err := stub.GetState(JobID)
 
 	//test if the job has been existed
@@ -265,7 +266,7 @@ func (t *SimpleChaincode) AddTotalWaitCheck(stub shim.ChaincodeStubInterface, ar
 
 	var TotalWaitCheckValue int
 	TotalWaitCheckValue, _ = strconv.Atoi(string(JobInfoJsonType.TotalWaitCheck))
-	TotalWaitCheckValue++
+	TotalWaitCheckValue += Num
 	JobInfoJsonType.TotalWaitCheck = strconv.Itoa(TotalWaitCheckValue)
 
 	// put the new score into state
