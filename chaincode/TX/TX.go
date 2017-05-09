@@ -302,6 +302,17 @@ func (t *SimpleChaincode) Evaluate(stub shim.ChaincodeStubInterface, args []stri
 		TXInfoJsonType.StuScore = Score
 	}
 
+	f10 := "creditScoreEdit"
+	invokeArgs10 := util.ToChaincodeArgs(f10, TXInfoJsonType.UserID, Score)
+	response10, err := stub.InvokeChaincode(t.GetUserChaincodeToCall(), invokeArgs10)
+	if err != nil {
+		errStr := fmt.Sprintf("Failed to invoke chaincode. Got error: %s", err.Error())
+		fmt.Printf(errStr)
+		return nil, errors.New(errStr)
+	}
+
+	fmt.Printf("Invoke chaincode successful. Got response %s", string(response10))
+
 	if len([]byte(TXInfoJsonType.StuScore)) != 0 && len([]byte(TXInfoJsonType.AgencyScore)) != 0 {
 		StudentScore, _ := strconv.Atoi(TXInfoJsonType.StuScore)
 		if StudentScore >= 8 {
