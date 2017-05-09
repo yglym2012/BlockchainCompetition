@@ -41,6 +41,7 @@ type JobStaticInfoStruct struct {
 	Salary  string
 	Day     string
 	Demand  string
+	Title   string
 }
 
 const UserInfoChaincodeID string = "9d29747f0b642ed65f481fbc1132d518834b3099671ad5d86feb8609202197f26cefcca348942ce9facdbe8312b5d7ee5598a6d9522c34ae9755720c1176a598"
